@@ -21,10 +21,12 @@ pub use kira_test.types.{
     Passed,
     Failed,
     TestResult,
+    TimedTestResult,
     TestCase,
     TestSuite,
     RunConfig,
-    TestSummary
+    TestSummary,
+    TimedTestSummary
 }
 
 // =============================================================================
@@ -110,12 +112,22 @@ pub use kira_test.builders.{
 // =============================================================================
 
 pub use kira_test.runners.{
+    // Standard runners
     run_test,
     run_test_with_hooks,
     run_suite,
     run_suite_with_config,
     run_all_suites,
-    run_all_suites_with_config
+    run_all_suites_with_config,
+    // Timed runners
+    run_test_timed,
+    run_test_timed_with_hooks,
+    run_suite_timed,
+    run_all_suites_timed,
+    // Parallel runners
+    run_suite_parallel,
+    run_all_suites_parallel,
+    run_suite_parallel_timed
 }
 
 // =============================================================================
@@ -123,8 +135,16 @@ pub use kira_test.runners.{
 // =============================================================================
 
 pub use kira_test.reporters.{
+    // Standard reporting
     print_failure,
     print_summary,
     run_and_report,
-    run_and_report_with_config
+    run_and_report_with_config,
+    // Timed reporting
+    print_failure_timed,
+    print_summary_timed,
+    run_and_report_timed,
+    // Parallel reporting
+    run_and_report_parallel,
+    run_and_report_parallel_timed
 }

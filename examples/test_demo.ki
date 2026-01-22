@@ -1,11 +1,12 @@
 // test_demo.ki: Example usage of the kira-test framework
 //
 // Demonstrates testing various functions with different assertion types,
-// including new features: tagging, before/after each hooks, fail-fast, and range assertions.
+// including: tagging, hooks, fail-fast, range assertions, timing, and parallel execution.
 
 import kira_test.{
     test, test_tagged, suite, suite_with_each, suite_full,
     run_and_report, run_and_report_with_config,
+    run_and_report_timed, run_and_report_parallel, run_and_report_parallel_timed,
     default_config, config_fail_fast, config_with_tags, config_full,
     assert_true, assert_false, assert_eq_i32, assert_eq_str, assert_eq_bool,
     assert_greater_i32, assert_less_i32,
@@ -330,10 +331,34 @@ effect fn main() -> void {
     let ff_passed: bool = run_and_report_with_config(fail_fast_suites, ff_config)
 
     print("")
+    print("=== Demo: Timed Test Execution ===")
+    print("")
+
+    // Run with timing - shows duration for each suite
+    let timed_suites: List[TestSuite] = std.list.cons(math_tests(), std.list.cons(boolean_tests(), std.list.singleton(result_tests())))
+    let timed_passed: bool = run_and_report_timed(timed_suites)
+
+    print("")
+    print("=== Demo: Parallel Test Execution ===")
+    print("")
+
+    // Run tests in parallel - faster for independent tests
+    let parallel_suites: List[TestSuite] = std.list.cons(string_tests(), std.list.cons(float_tests(), std.list.singleton(comparison_tests())))
+    let parallel_passed: bool = run_and_report_parallel(parallel_suites)
+
+    print("")
+    print("=== Demo: Parallel + Timed Execution ===")
+    print("")
+
+    // Run tests in parallel with timing - best of both worlds
+    let parallel_timed_suites: List[TestSuite] = std.list.cons(math_tests(), std.list.cons(range_tests(), std.list.singleton(error_message_tests())))
+    let parallel_timed_passed: bool = run_and_report_parallel_timed(parallel_timed_suites)
+
+    print("")
     print("=== Summary ===")
     print("")
 
-    match standard_passed and new_features_passed {
+    match standard_passed and new_features_passed and timed_passed and parallel_passed and parallel_timed_passed {
         true => { print("All main test suites passed!") }
         false => { print("Some tests failed.") }
     }
