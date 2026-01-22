@@ -1,0 +1,73 @@
+// reporters.ki: Test result reporting functions
+//
+// Effect functions for printing test results to the console.
+
+module kira_test.reporters
+
+import kira_test.types.{TestResult, TestSuite, RunConfig, TestSummary}
+import kira_test.runners.{run_all_suites, run_all_suites_with_config}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+fn str_concat3(a: string, b: string, c: string) -> string {
+    return std.string.concat(std.string.concat(a, b), c)
+}
+
+fn str_concat4(a: string, b: string, c: string, d: string) -> string {
+    return std.string.concat(std.string.concat(std.string.concat(a, b), c), d)
+}
+
+fn count_failures(acc: i32, s: TestSummary) -> i32 {
+    return acc + s.failed
+}
+
+// =============================================================================
+// Printing Functions
+// =============================================================================
+
+/// Print a single test failure.
+effect fn print_failure(f: TestResult) -> void {
+    print(str_concat4("  - ", f.name, ": ", f.message))
+    return
+}
+
+/// Print a test suite summary.
+effect fn print_summary(summary: TestSummary) -> void {
+    print("")
+    print(std.string.concat("Suite: ", summary.suite_name))
+    print("=================")
+    print("")
+
+    match summary.failed == 0 {
+        true => { print(str_concat3("All ", std.string.from_i32(summary.total), " tests passed!")) }
+        false => {
+            print(str_concat4(std.string.from_i32(summary.passed), "/", std.string.from_i32(summary.total), " tests passed"))
+            print("")
+            print("Failures:")
+            std.list.foreach(summary.failures, print_failure)
+        }
+    }
+    return
+}
+
+// =============================================================================
+// Run and Report Functions
+// =============================================================================
+
+/// Run all suites and print results. Returns true if all tests passed.
+effect fn run_and_report(suites: List[TestSuite]) -> bool {
+    let summaries: List[TestSummary] = run_all_suites(suites)
+    std.list.foreach(summaries, print_summary)
+    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
+    return total_failed == 0
+}
+
+/// Run all suites with config and print results. Returns true if all tests passed.
+effect fn run_and_report_with_config(suites: List[TestSuite], config: RunConfig) -> bool {
+    let summaries: List[TestSummary] = run_all_suites_with_config(suites, config)
+    std.list.foreach(summaries, print_summary)
+    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
+    return total_failed == 0
+}

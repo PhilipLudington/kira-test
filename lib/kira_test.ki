@@ -1,363 +1,130 @@
 // kira-test: A functional testing framework for Kira
 //
-// Exercises ADTs, pattern matching, higher-order functions, closures, and effects.
+// This is the main module that re-exports all public items from sub-modules.
+//
+// Modules:
+//   - types.ki      : Core type definitions (ADTs)
+//   - assertions.ki : Assertion functions for testing
+//   - tagging.ki    : Test tagging and filtering
+//   - builders.ki   : Test, suite, and config builders
+//   - runners.ki    : Test execution functions
+//   - reporters.ki  : Result reporting (effect functions)
 
 module kira_test
 
 // =============================================================================
-// Core Types (ADTs)
+// Re-export Types
 // =============================================================================
 
-type AssertionResult =
-    | Passed
-    | Failed(string)
-
-type TestResult = {
-    name: string,
-    passed: bool,
-    message: string
-}
-
-type TestCase = {
-    name: string,
-    run: fn() -> AssertionResult
-}
-
-type TestSuite = {
-    name: string,
-    tests: List[TestCase],
-    setup: Option[fn() -> void],
-    teardown: Option[fn() -> void]
-}
-
-type TestSummary = {
-    suite_name: string,
-    total: i32,
-    passed: i32,
-    failed: i32,
-    failures: List[TestResult]
+pub use kira_test.types.{
+    AssertionResult,
+    Passed,
+    Failed,
+    TestResult,
+    TestCase,
+    TestSuite,
+    RunConfig,
+    TestSummary
 }
 
 // =============================================================================
-// Helper functions
+// Re-export Assertions
 // =============================================================================
 
-fn str_concat3(a: string, b: string, c: string) -> string {
-    return std.string.concat(std.string.concat(a, b), c)
-}
-
-fn str_concat4(a: string, b: string, c: string, d: string) -> string {
-    return std.string.concat(std.string.concat(std.string.concat(a, b), c), d)
-}
-
-fn str_concat5(a: string, b: string, c: string, d: string, e: string) -> string {
-    return std.string.concat(std.string.concat(std.string.concat(std.string.concat(a, b), c), d), e)
-}
-
-// =============================================================================
-// Assertion Functions (Pure)
-// =============================================================================
-
-// Boolean assertions
-fn assert_true(value: bool) -> AssertionResult {
-    match value {
-        true => { return Passed }
-        false => { return Failed("Expected true, got false") }
-    }
-}
-
-fn assert_false(value: bool) -> AssertionResult {
-    match value {
-        false => { return Passed }
-        true => { return Failed("Expected false, got true") }
-    }
-}
-
-// Equality assertions for i32
-fn assert_eq_i32(expected: i32, actual: i32) -> AssertionResult {
-    match expected == actual {
-        true => { return Passed }
-        false => { return Failed(str_concat4("Expected ", std.string.from_i32(expected), ", got ", std.string.from_i32(actual))) }
-    }
-}
-
-fn assert_not_eq_i32(not_expected: i32, actual: i32) -> AssertionResult {
-    match not_expected != actual {
-        true => { return Passed }
-        false => { return Failed(std.string.concat("Expected value different from ", std.string.from_i32(not_expected))) }
-    }
-}
-
-// Equality assertions for string
-fn assert_eq_str(expected: string, actual: string) -> AssertionResult {
-    match expected == actual {
-        true => { return Passed }
-        false => { return Failed(str_concat5("Expected \"", expected, "\", got \"", actual, "\"")) }
-    }
-}
-
-fn assert_not_eq_str(not_expected: string, actual: string) -> AssertionResult {
-    match not_expected != actual {
-        true => { return Passed }
-        false => { return Failed(str_concat3("Expected value different from \"", not_expected, "\"")) }
-    }
-}
-
-// Equality assertions for bool
-fn assert_eq_bool(expected: bool, actual: bool) -> AssertionResult {
-    match expected == actual {
-        true => { return Passed }
-        false => {
-            let exp_str: string = match expected {
-                true => { return "true" }
-                false => { return "false" }
-            }
-            let act_str: string = match actual {
-                true => { return "true" }
-                false => { return "false" }
-            }
-            return Failed(str_concat4("Expected ", exp_str, ", got ", act_str))
-        }
-    }
-}
-
-// Equality assertions for f64
-fn assert_eq_f64(expected: f64, actual: f64) -> AssertionResult {
-    match expected == actual {
-        true => { return Passed }
-        false => { return Failed(str_concat4("Expected ", std.string.from_f64(expected), ", got ", std.string.from_f64(actual))) }
-    }
-}
-
-fn assert_approx_eq(expected: f64, actual: f64, epsilon: f64) -> AssertionResult {
-    let diff: f64 = expected - actual
-    let abs_diff: f64 = match diff < 0.0 {
-        true => { return 0.0 - diff }
-        false => { return diff }
-    }
-    match abs_diff <= epsilon {
-        true => { return Passed }
-        false => { return Failed(str_concat5("Expected ", std.string.from_f64(expected), " +/- ", std.string.from_f64(epsilon), std.string.concat(", got ", std.string.from_f64(actual)))) }
-    }
-}
-
-// Comparison assertions for i32
-fn assert_greater_i32(threshold: i32, actual: i32) -> AssertionResult {
-    match actual > threshold {
-        true => { return Passed }
-        false => { return Failed(str_concat4("Expected value > ", std.string.from_i32(threshold), ", got ", std.string.from_i32(actual))) }
-    }
-}
-
-fn assert_less_i32(threshold: i32, actual: i32) -> AssertionResult {
-    match actual < threshold {
-        true => { return Passed }
-        false => { return Failed(str_concat4("Expected value < ", std.string.from_i32(threshold), ", got ", std.string.from_i32(actual))) }
-    }
-}
-
-// Option assertions for i32
-fn assert_some_i32(opt: Option[i32]) -> AssertionResult {
-    match opt {
-        Some(_) => { return Passed }
-        None => { return Failed("Expected Some, got None") }
-    }
-}
-
-fn assert_none_i32(opt: Option[i32]) -> AssertionResult {
-    match opt {
-        None => { return Passed }
-        Some(v) => { return Failed(str_concat3("Expected None, got Some(", std.string.from_i32(v), ")")) }
-    }
-}
-
-fn assert_some_eq_i32(expected: i32, opt: Option[i32]) -> AssertionResult {
-    match opt {
-        Some(v) => {
-            match v == expected {
-                true => { return Passed }
-                false => { return Failed(str_concat5("Expected Some(", std.string.from_i32(expected), "), got Some(", std.string.from_i32(v), ")")) }
-            }
-        }
-        None => { return Failed(str_concat3("Expected Some(", std.string.from_i32(expected), "), got None")) }
-    }
-}
-
-// Result assertions for i32
-fn assert_ok_i32(res: Result[i32, string]) -> AssertionResult {
-    match res {
-        Ok(_) => { return Passed }
-        Err(e) => { return Failed(str_concat3("Expected Ok, got Err(\"", e, "\")")) }
-    }
-}
-
-fn assert_err_i32(res: Result[i32, string]) -> AssertionResult {
-    match res {
-        Err(_) => { return Passed }
-        Ok(v) => { return Failed(str_concat3("Expected Err, got Ok(", std.string.from_i32(v), ")")) }
-    }
-}
-
-fn assert_ok_eq_i32(expected: i32, res: Result[i32, string]) -> AssertionResult {
-    match res {
-        Ok(v) => {
-            match v == expected {
-                true => { return Passed }
-                false => { return Failed(str_concat5("Expected Ok(", std.string.from_i32(expected), "), got Ok(", std.string.from_i32(v), ")")) }
-            }
-        }
-        Err(e) => { return Failed(str_concat5("Expected Ok(", std.string.from_i32(expected), "), got Err(\"", e, "\")")) }
-    }
-}
-
-// String content assertions
-fn assert_contains(haystack: string, needle: string) -> AssertionResult {
-    match std.string.contains(haystack, needle) {
-        true => { return Passed }
-        false => { return Failed(str_concat5("Expected \"", haystack, "\" to contain \"", needle, "\"")) }
-    }
-}
-
-fn assert_starts_with(s: string, prefix: string) -> AssertionResult {
-    match std.string.starts_with(s, prefix) {
-        true => { return Passed }
-        false => { return Failed(str_concat5("Expected \"", s, "\" to start with \"", prefix, "\"")) }
-    }
-}
-
-fn assert_ends_with(s: string, suffix: string) -> AssertionResult {
-    match std.string.ends_with(s, suffix) {
-        true => { return Passed }
-        false => { return Failed(str_concat5("Expected \"", s, "\" to end with \"", suffix, "\"")) }
-    }
-}
-
-// List assertions for i32
-fn assert_empty_i32(list: List[i32]) -> AssertionResult {
-    match std.list.length(list) == 0 {
-        true => { return Passed }
-        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i32(std.list.length(list)), " elements")) }
-    }
-}
-
-fn assert_not_empty_i32(list: List[i32]) -> AssertionResult {
-    match std.list.length(list) > 0 {
-        true => { return Passed }
-        false => { return Failed("Expected non-empty list, got empty list") }
-    }
-}
-
-fn assert_length_i32(expected_len: i32, list: List[i32]) -> AssertionResult {
-    let actual_len: i32 = std.list.length(list)
-    match actual_len == expected_len {
-        true => { return Passed }
-        false => { return Failed(str_concat4("Expected list length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
-    }
+pub use kira_test.assertions.{
+    // Boolean
+    assert_true,
+    assert_false,
+    // Equality - i32
+    assert_eq_i32,
+    assert_not_eq_i32,
+    // Equality - string
+    assert_eq_str,
+    assert_not_eq_str,
+    // Equality - bool
+    assert_eq_bool,
+    // Equality - f64
+    assert_eq_f64,
+    assert_approx_eq,
+    // Comparison - i32
+    assert_greater_i32,
+    assert_less_i32,
+    // Range
+    assert_in_range_i32,
+    assert_in_range_f64,
+    // Option - i32
+    assert_some_i32,
+    assert_none_i32,
+    assert_some_eq_i32,
+    // Result - i32
+    assert_ok_i32,
+    assert_err_i32,
+    assert_ok_eq_i32,
+    assert_err_contains_i32,
+    // Result - string
+    assert_err_str,
+    assert_err_contains_str,
+    // String content
+    assert_contains,
+    assert_starts_with,
+    assert_ends_with,
+    // List - i32
+    assert_empty_i32,
+    assert_not_empty_i32,
+    assert_length_i32
 }
 
 // =============================================================================
-// Test Builders (Pure)
+// Re-export Tagging
 // =============================================================================
 
-fn test(name: string, test_fn: fn() -> AssertionResult) -> TestCase {
-    return TestCase { name: name, run: test_fn }
-}
-
-fn suite(name: string, tests: List[TestCase]) -> TestSuite {
-    return TestSuite { name: name, tests: tests, setup: None, teardown: None }
-}
-
-fn suite_with_setup(name: string, tests: List[TestCase], setup: fn() -> void) -> TestSuite {
-    return TestSuite { name: name, tests: tests, setup: Some(setup), teardown: None }
-}
-
-fn suite_with_lifecycle(name: string, tests: List[TestCase], setup: fn() -> void, teardown: fn() -> void) -> TestSuite {
-    return TestSuite { name: name, tests: tests, setup: Some(setup), teardown: Some(teardown) }
+pub use kira_test.tagging.{
+    has_tag,
+    has_any_tag,
+    filter_by_tags
 }
 
 // =============================================================================
-// Test Runner (Pure)
+// Re-export Builders
 // =============================================================================
 
-fn run_test(tc: TestCase) -> TestResult {
-    let result: AssertionResult = tc.run()
-    match result {
-        Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
-        Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
-    }
-}
-
-fn count_passed(acc: i32, r: TestResult) -> i32 {
-    match r.passed {
-        true => { return acc + 1 }
-        false => { return acc }
-    }
-}
-
-fn is_failed(r: TestResult) -> bool {
-    match r.passed {
-        true => { return false }
-        false => { return true }
-    }
-}
-
-fn run_suite(s: TestSuite) -> TestSummary {
-    match s.setup {
-        Some(setup_fn) => { setup_fn() }
-        None => {}
-    }
-
-    let results: List[TestResult] = std.list.map(s.tests, run_test)
-
-    match s.teardown {
-        Some(teardown_fn) => { teardown_fn() }
-        None => {}
-    }
-
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed)
-    let failed: i32 = total - passed
-    let failures: List[TestResult] = std.list.filter(results, is_failed)
-
-    return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
-}
-
-fn run_all_suites(suites: List[TestSuite]) -> List[TestSummary] {
-    return std.list.map(suites, run_suite)
+pub use kira_test.builders.{
+    // Test case builders
+    test,
+    test_tagged,
+    // Suite builders
+    suite,
+    suite_with_setup,
+    suite_with_lifecycle,
+    suite_with_each,
+    suite_full,
+    // Config builders
+    default_config,
+    config_fail_fast,
+    config_with_tags,
+    config_full
 }
 
 // =============================================================================
-// Reporting (Effect functions for I/O)
+// Re-export Runners
 // =============================================================================
 
-effect fn print_failure(f: TestResult) -> void {
-    print(str_concat4("  - ", f.name, ": ", f.message))
+pub use kira_test.runners.{
+    run_test,
+    run_test_with_hooks,
+    run_suite,
+    run_suite_with_config,
+    run_all_suites,
+    run_all_suites_with_config
 }
 
-effect fn print_summary(summary: TestSummary) -> void {
-    print("")
-    print(std.string.concat("Suite: ", summary.suite_name))
-    print("=================")
-    print("")
+// =============================================================================
+// Re-export Reporters
+// =============================================================================
 
-    match summary.failed == 0 {
-        true => { print(str_concat3("All ", std.string.from_i32(summary.total), " tests passed!")) }
-        false => {
-            print(str_concat4(std.string.from_i32(summary.passed), "/", std.string.from_i32(summary.total), " tests passed"))
-            print("")
-            print("Failures:")
-            std.list.foreach(summary.failures, print_failure)
-        }
-    }
-}
-
-fn count_failures(acc: i32, s: TestSummary) -> i32 {
-    return acc + s.failed
-}
-
-effect fn run_and_report(suites: List[TestSuite]) -> bool {
-    let summaries: List[TestSummary] = run_all_suites(suites)
-    std.list.foreach(summaries, print_summary)
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
-    return total_failed == 0
+pub use kira_test.reporters.{
+    print_failure,
+    print_summary,
+    run_and_report,
+    run_and_report_with_config
 }

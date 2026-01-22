@@ -1,8 +1,22 @@
 // test_demo.ki: Example usage of the kira-test framework
 //
-// Demonstrates testing various functions with different assertion types.
+// Demonstrates testing various functions with different assertion types,
+// including new features: tagging, before/after each hooks, fail-fast, and range assertions.
 
-import kira_test.{test, suite, run_and_report, assert_true, assert_false, assert_eq_i32, assert_eq_str, assert_eq_bool, assert_greater_i32, assert_less_i32, assert_some_i32, assert_none_i32, assert_some_eq_i32, assert_ok_i32, assert_err_i32, assert_ok_eq_i32, assert_contains, assert_starts_with, assert_approx_eq, AssertionResult, TestCase, TestSuite}
+import kira_test.{
+    test, test_tagged, suite, suite_with_each, suite_full,
+    run_and_report, run_and_report_with_config,
+    default_config, config_fail_fast, config_with_tags, config_full,
+    assert_true, assert_false, assert_eq_i32, assert_eq_str, assert_eq_bool,
+    assert_greater_i32, assert_less_i32,
+    assert_some_i32, assert_none_i32, assert_some_eq_i32,
+    assert_ok_i32, assert_err_i32, assert_ok_eq_i32,
+    assert_err_contains_i32,
+    assert_contains, assert_starts_with, assert_approx_eq,
+    assert_in_range_i32, assert_in_range_f64,
+    has_tag, filter_by_tags,
+    AssertionResult, TestCase, TestSuite, RunConfig
+}
 
 // =============================================================================
 // Functions to test
@@ -148,10 +162,127 @@ fn comparison_tests() -> TestSuite {
 }
 
 // =============================================================================
+// New Feature Demos
+// =============================================================================
+
+// Demo: Range assertions
+fn range_tests() -> TestSuite {
+    let t1: TestCase = test("value is in range [0, 100]", fn() -> AssertionResult {
+        return assert_in_range_i32(0, 100, 50)
+    })
+
+    let t2: TestCase = test("boundary value at min", fn() -> AssertionResult {
+        return assert_in_range_i32(0, 100, 0)
+    })
+
+    let t3: TestCase = test("boundary value at max", fn() -> AssertionResult {
+        return assert_in_range_i32(0, 100, 100)
+    })
+
+    let t4: TestCase = test("float in range [0.0, 1.0]", fn() -> AssertionResult {
+        return assert_in_range_f64(0.0, 1.0, 0.5)
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.cons(t3, std.list.singleton(t4))))
+    return suite("Range Tests", tests)
+}
+
+// Demo: Error message assertions
+fn error_message_tests() -> TestSuite {
+    let t1: TestCase = test("division by zero has correct message", fn() -> AssertionResult {
+        return assert_err_contains_i32(safe_divide(10, 0), "zero")
+    })
+
+    let t2: TestCase = test("error message contains 'Division'", fn() -> AssertionResult {
+        return assert_err_contains_i32(safe_divide(5, 0), "Division")
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.singleton(t2))
+    return suite("Error Message Tests", tests)
+}
+
+// Demo: Tagged tests
+fn tagged_tests() -> TestSuite {
+    let unit_tag: List[string] = std.list.singleton("unit")
+    let integration_tag: List[string] = std.list.singleton("integration")
+    let slow_tag: List[string] = std.list.singleton("slow")
+
+    let t1: TestCase = test_tagged("fast unit test 1", unit_tag, fn() -> AssertionResult {
+        return assert_eq_i32(4, add(2, 2))
+    })
+
+    let t2: TestCase = test_tagged("fast unit test 2", unit_tag, fn() -> AssertionResult {
+        return assert_true(is_positive(5))
+    })
+
+    let t3: TestCase = test_tagged("slow integration test", std.list.cons("integration", std.list.singleton("slow")), fn() -> AssertionResult {
+        return assert_eq_str("Hello, Test!", greet("Test"))
+    })
+
+    let t4: TestCase = test_tagged("another integration test", integration_tag, fn() -> AssertionResult {
+        return assert_ok_i32(safe_divide(10, 2))
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.cons(t3, std.list.singleton(t4))))
+    return suite("Tagged Tests", tests)
+}
+
+// Demo: Before/after each hooks
+var hook_call_count: i32 = 0
+
+fn reset_hook_count() -> void {
+    hook_call_count = 0
+    return
+}
+
+fn increment_hook_count() -> void {
+    hook_call_count = hook_call_count + 1
+    return
+}
+
+fn hook_tests() -> TestSuite {
+    let t1: TestCase = test("hook increments counter (first)", fn() -> AssertionResult {
+        return assert_greater_i32(0, hook_call_count)
+    })
+
+    let t2: TestCase = test("hook increments counter (second)", fn() -> AssertionResult {
+        return assert_greater_i32(0, hook_call_count)
+    })
+
+    let t3: TestCase = test("hook increments counter (third)", fn() -> AssertionResult {
+        return assert_greater_i32(0, hook_call_count)
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.singleton(t3)))
+    return suite_with_each("Hook Tests", tests, increment_hook_count, fn() -> void { return })
+}
+
+// Demo: Fail-fast behavior
+fn fail_fast_demo_tests() -> TestSuite {
+    let t1: TestCase = test("passes first", fn() -> AssertionResult {
+        return assert_true(true)
+    })
+
+    let t2: TestCase = test("fails second (stops here with fail-fast)", fn() -> AssertionResult {
+        return assert_true(false)
+    })
+
+    let t3: TestCase = test("would pass third (skipped with fail-fast)", fn() -> AssertionResult {
+        return assert_true(true)
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.singleton(t3)))
+    return suite("Fail-Fast Demo", tests)
+}
+
+// =============================================================================
 // Main Entry Point
 // =============================================================================
 
 effect fn main() -> void {
+    print("=== Running Standard Tests ===")
+    print("")
+
     let s1: TestSuite = math_tests()
     let s2: TestSuite = boolean_tests()
     let s3: TestSuite = result_tests()
@@ -160,12 +291,52 @@ effect fn main() -> void {
     let s6: TestSuite = float_tests()
     let s7: TestSuite = comparison_tests()
 
-    let suites: List[TestSuite] = std.list.cons(s1, std.list.cons(s2, std.list.cons(s3, std.list.cons(s4, std.list.cons(s5, std.list.cons(s6, std.list.singleton(s7)))))))
+    let standard_suites: List[TestSuite] = std.list.cons(s1, std.list.cons(s2, std.list.cons(s3, std.list.cons(s4, std.list.cons(s5, std.list.cons(s6, std.list.singleton(s7)))))))
 
-    let all_passed: bool = run_and_report(suites)
+    let standard_passed: bool = run_and_report(standard_suites)
 
-    match all_passed {
-        true => { print("All test suites passed!") }
+    print("")
+    print("=== Running New Feature Tests ===")
+    print("")
+
+    // New feature test suites
+    let s8: TestSuite = range_tests()
+    let s9: TestSuite = error_message_tests()
+    let s10: TestSuite = hook_tests()
+
+    let new_feature_suites: List[TestSuite] = std.list.cons(s8, std.list.cons(s9, std.list.singleton(s10)))
+
+    let new_features_passed: bool = run_and_report(new_feature_suites)
+
+    print("")
+    print("=== Demo: Tagged Tests (running only 'unit' tagged tests) ===")
+    print("")
+
+    let s11: TestSuite = tagged_tests()
+    let tagged_suites: List[TestSuite] = std.list.singleton(s11)
+    let unit_tags: List[string] = std.list.singleton("unit")
+    let tag_config: RunConfig = config_with_tags(unit_tags)
+
+    let tagged_passed: bool = run_and_report_with_config(tagged_suites, tag_config)
+
+    print("")
+    print("=== Demo: Fail-Fast Mode (stops on first failure) ===")
+    print("")
+
+    let s12: TestSuite = fail_fast_demo_tests()
+    let fail_fast_suites: List[TestSuite] = std.list.singleton(s12)
+    let ff_config: RunConfig = config_fail_fast()
+
+    let ff_passed: bool = run_and_report_with_config(fail_fast_suites, ff_config)
+
+    print("")
+    print("=== Summary ===")
+    print("")
+
+    match standard_passed and new_features_passed {
+        true => { print("All main test suites passed!") }
         false => { print("Some tests failed.") }
     }
+
+    print("(Note: Fail-fast demo intentionally has a failing test)")
 }

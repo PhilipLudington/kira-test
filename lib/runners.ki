@@ -1,0 +1,169 @@
+// runners.ki: Test execution functions
+//
+// Pure functions for running tests and suites.
+
+module kira_test.runners
+
+import kira_test.types.{AssertionResult, Passed, Failed, TestResult, TestCase, TestSuite, RunConfig, TestSummary}
+import kira_test.tagging.{filter_by_tags}
+
+// =============================================================================
+// Single Test Runners
+// =============================================================================
+
+/// Run a single test case and return the result.
+fn run_test(tc: TestCase) -> TestResult {
+    let result: AssertionResult = tc.run()
+    match result {
+        Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
+        Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
+    }
+}
+
+/// Run a single test case with optional before/after hooks.
+fn run_test_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Option[fn() -> void]) -> TestResult {
+    match before {
+        Some(before_fn) => { before_fn() }
+        None => {}
+    }
+
+    let result: AssertionResult = tc.run()
+
+    match after {
+        Some(after_fn) => { after_fn() }
+        None => {}
+    }
+
+    match result {
+        Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
+        Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
+    }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+fn count_passed(acc: i32, r: TestResult) -> i32 {
+    match r.passed {
+        true => { return acc + 1 }
+        false => { return acc }
+    }
+}
+
+fn is_failed(r: TestResult) -> bool {
+    match r.passed {
+        true => { return false }
+        false => { return true }
+    }
+}
+
+// =============================================================================
+// Suite Runners
+// =============================================================================
+
+/// Run all tests in a suite and return a summary.
+fn run_suite(s: TestSuite) -> TestSummary {
+    match s.setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TestResult] = std.list.map(s.tests, fn(tc: TestCase) -> TestResult {
+        return run_test_with_hooks(tc, s.before_each, s.after_each)
+    })
+
+    match s.teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed)
+    let failed: i32 = total - passed
+    let failures: List[TestResult] = std.list.filter(results, is_failed)
+
+    return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
+}
+
+/// Run tests with fail-fast support.
+fn run_tests_fail_fast(tests: List[TestCase], before_each: Option[fn() -> void], after_each: Option[fn() -> void], fail_fast: bool) -> List[TestResult] {
+    var results: List[TestResult] = Nil
+    var should_continue: bool = true
+
+    std.list.foreach(tests, fn(tc: TestCase) -> void {
+        match should_continue {
+            true => {
+                let result: TestResult = run_test_with_hooks(tc, before_each, after_each)
+                results = std.list.append(results, std.list.singleton(result))
+                match fail_fast and not result.passed {
+                    true => { should_continue = false }
+                    false => {}
+                }
+            }
+            false => {}
+        }
+        return
+    })
+
+    return results
+}
+
+/// Run a suite with configuration options.
+fn run_suite_with_config(s: TestSuite, config: RunConfig) -> TestSummary {
+    let filtered_tests: List[TestCase] = match config.tags_filter {
+        Some(tags) => { return filter_by_tags(s.tests, tags) }
+        None => { return s.tests }
+    }
+
+    match s.setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TestResult] = run_tests_fail_fast(filtered_tests, s.before_each, s.after_each, config.fail_fast)
+
+    match s.teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed)
+    let failed: i32 = total - passed
+    let failures: List[TestResult] = std.list.filter(results, is_failed)
+
+    return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
+}
+
+// =============================================================================
+// Multiple Suite Runners
+// =============================================================================
+
+/// Run all suites and return summaries.
+fn run_all_suites(suites: List[TestSuite]) -> List[TestSummary] {
+    return std.list.map(suites, run_suite)
+}
+
+/// Run all suites with configuration, supporting fail-fast across suites.
+fn run_all_suites_with_config(suites: List[TestSuite], config: RunConfig) -> List[TestSummary] {
+    var summaries: List[TestSummary] = Nil
+    var should_continue: bool = true
+
+    std.list.foreach(suites, fn(s: TestSuite) -> void {
+        match should_continue {
+            true => {
+                let summary: TestSummary = run_suite_with_config(s, config)
+                summaries = std.list.append(summaries, std.list.singleton(summary))
+                match config.fail_fast and summary.failed > 0 {
+                    true => { should_continue = false }
+                    false => {}
+                }
+            }
+            false => {}
+        }
+        return
+    })
+
+    return summaries
+}
