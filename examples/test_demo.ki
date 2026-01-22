@@ -1,0 +1,171 @@
+// test_demo.ki: Example usage of the kira-test framework
+//
+// Demonstrates testing various functions with different assertion types.
+
+import kira_test.{test, suite, run_and_report, assert_true, assert_false, assert_eq_i32, assert_eq_str, assert_eq_bool, assert_greater_i32, assert_less_i32, assert_some_i32, assert_none_i32, assert_some_eq_i32, assert_ok_i32, assert_err_i32, assert_ok_eq_i32, assert_contains, assert_starts_with, assert_approx_eq, AssertionResult, TestCase, TestSuite}
+
+// =============================================================================
+// Functions to test
+// =============================================================================
+
+fn add(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+fn multiply(a: i32, b: i32) -> i32 {
+    return a * b
+}
+
+fn is_positive(n: i32) -> bool {
+    return n > 0
+}
+
+fn safe_divide(a: i32, b: i32) -> Result[i32, string] {
+    match b == 0 {
+        true => { return Err("Division by zero") }
+        false => { return Ok(a / b) }
+    }
+}
+
+fn find_first_positive(list: List[i32]) -> Option[i32] {
+    return std.list.find(list, fn(n: i32) -> bool {
+        return n > 0
+    })
+}
+
+fn greet(name: string) -> string {
+    return std.string.concat(std.string.concat("Hello, ", name), "!")
+}
+
+fn calculate_area(radius: f64) -> f64 {
+    return 3.14159 * radius * radius
+}
+
+// =============================================================================
+// Test Suites
+// =============================================================================
+
+fn math_tests() -> TestSuite {
+    let t1: TestCase = test("add returns correct sum", fn() -> AssertionResult {
+        return assert_eq_i32(5, add(2, 3))
+    })
+
+    let t2: TestCase = test("add handles negative numbers", fn() -> AssertionResult {
+        return assert_eq_i32(-1, add(2, -3))
+    })
+
+    let t3: TestCase = test("multiply returns correct product", fn() -> AssertionResult {
+        return assert_eq_i32(12, multiply(3, 4))
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.singleton(t3)))
+    return suite("Math Tests", tests)
+}
+
+fn boolean_tests() -> TestSuite {
+    let t1: TestCase = test("is_positive returns true for positive", fn() -> AssertionResult {
+        return assert_true(is_positive(5))
+    })
+
+    let t2: TestCase = test("is_positive returns false for zero", fn() -> AssertionResult {
+        return assert_false(is_positive(0))
+    })
+
+    let t3: TestCase = test("is_positive returns false for negative", fn() -> AssertionResult {
+        return assert_false(is_positive(-3))
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.singleton(t3)))
+    return suite("Boolean Tests", tests)
+}
+
+fn result_tests() -> TestSuite {
+    let t1: TestCase = test("safe_divide returns Ok for valid division", fn() -> AssertionResult {
+        return assert_ok_eq_i32(5, safe_divide(10, 2))
+    })
+
+    let t2: TestCase = test("safe_divide returns Err for division by zero", fn() -> AssertionResult {
+        return assert_err_i32(safe_divide(10, 0))
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.singleton(t2))
+    return suite("Result Tests", tests)
+}
+
+fn option_tests() -> TestSuite {
+    let positive_list: List[i32] = std.list.cons(1, std.list.cons(2, std.list.singleton(3)))
+    let negative_list: List[i32] = std.list.cons(-1, std.list.cons(-2, std.list.singleton(-3)))
+
+    let t1: TestCase = test("find_first_positive returns Some when found", fn() -> AssertionResult {
+        return assert_some_eq_i32(1, find_first_positive(positive_list))
+    })
+
+    let t2: TestCase = test("find_first_positive returns None when not found", fn() -> AssertionResult {
+        return assert_none_i32(find_first_positive(negative_list))
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.singleton(t2))
+    return suite("Option Tests", tests)
+}
+
+fn string_tests() -> TestSuite {
+    let t1: TestCase = test("greet returns correct greeting", fn() -> AssertionResult {
+        return assert_eq_str("Hello, World!", greet("World"))
+    })
+
+    let t2: TestCase = test("greeting starts with Hello", fn() -> AssertionResult {
+        return assert_starts_with(greet("Alice"), "Hello")
+    })
+
+    let t3: TestCase = test("greeting contains name", fn() -> AssertionResult {
+        return assert_contains(greet("Bob"), "Bob")
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.cons(t2, std.list.singleton(t3)))
+    return suite("String Tests", tests)
+}
+
+fn float_tests() -> TestSuite {
+    let t1: TestCase = test("calculate_area is approximately correct", fn() -> AssertionResult {
+        return assert_approx_eq(78.54, calculate_area(5.0), 0.01)
+    })
+
+    let tests: List[TestCase] = std.list.singleton(t1)
+    return suite("Float Tests", tests)
+}
+
+fn comparison_tests() -> TestSuite {
+    let t1: TestCase = test("10 is greater than 5", fn() -> AssertionResult {
+        return assert_greater_i32(5, 10)
+    })
+
+    let t2: TestCase = test("3 is less than 7", fn() -> AssertionResult {
+        return assert_less_i32(7, 3)
+    })
+
+    let tests: List[TestCase] = std.list.cons(t1, std.list.singleton(t2))
+    return suite("Comparison Tests", tests)
+}
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+effect fn main() -> void {
+    let s1: TestSuite = math_tests()
+    let s2: TestSuite = boolean_tests()
+    let s3: TestSuite = result_tests()
+    let s4: TestSuite = option_tests()
+    let s5: TestSuite = string_tests()
+    let s6: TestSuite = float_tests()
+    let s7: TestSuite = comparison_tests()
+
+    let suites: List[TestSuite] = std.list.cons(s1, std.list.cons(s2, std.list.cons(s3, std.list.cons(s4, std.list.cons(s5, std.list.cons(s6, std.list.singleton(s7)))))))
+
+    let all_passed: bool = run_and_report(suites)
+
+    match all_passed {
+        true => { print("All test suites passed!") }
+        false => { print("Some tests failed.") }
+    }
+}
