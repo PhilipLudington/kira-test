@@ -18,11 +18,13 @@ run_test_file() {
 
     # Capture output and check for test results
     if output=$(kira run "$file" 2>&1); then
+        echo "$output"
+
         # Parse output for pass/fail counts
-        # Expected format: "X passed, Y failed" or similar
-        if echo "$output" | grep -q "passed"; then
-            local p=$(echo "$output" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || echo "0")
-            local f=$(echo "$output" | grep -oE '[0-9]+ failed' | grep -oE '[0-9]+' || echo "0")
+        # Format: "X passed" and "Y failed" on separate lines
+        if echo "$output" | grep -qE '[0-9]+ passed'; then
+            local p=$(echo "$output" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+')
+            local f=$(echo "$output" | grep -oE '[0-9]+ failed' | head -1 | grep -oE '[0-9]+' || echo "0")
             PASSED=$((PASSED + p))
             FAILED=$((FAILED + f))
 
@@ -34,38 +36,33 @@ run_test_file() {
                     fi
                 done <<< "$output"
             fi
+        # Check for PASSED in output (standalone tests)
+        elif echo "$output" | grep -q "PASSED"; then
+            PASSED=$((PASSED + 1))
         else
-            # Check for PASSED in output (standalone tests)
-            if echo "$output" | grep -q "PASSED"; then
-                PASSED=$((PASSED + 1))
-            else
-                # If no standard output, assume success if exit code 0
-                PASSED=$((PASSED + 1))
-            fi
+            # If no recognized output, assume success if exit code 0
+            PASSED=$((PASSED + 1))
         fi
-        echo "$output"
     else
+        echo "$output"
         FAILED=$((FAILED + 1))
         FAILURES+=("$file: execution failed")
-        echo "$output"
     fi
 }
 
 echo "=== Running kira-test test suite ==="
 echo ""
 
-# Run standalone examples first (these don't require module imports)
-echo "--- Standalone Tests (no imports) ---"
-for test_file in examples/standalone_test.ki; do
-    if [ -f "$test_file" ]; then
-        run_test_file "$test_file"
-        echo ""
-    fi
-done
+# Run internal tests (use direct imports, work from within package)
+echo "--- Internal Tests ---"
+if [ -f "tests/internal_tests.ki" ]; then
+    run_test_file "tests/internal_tests.ki"
+    echo ""
+fi
 
-# Run tests that import kira_test (require proper module setup)
-echo "--- Module Tests (require kira_test as dependency) ---"
-for test_file in tests/test_*.ki; do
+# Run standalone examples
+echo "--- Standalone Examples ---"
+for test_file in examples/standalone_test.ki; do
     if [ -f "$test_file" ]; then
         run_test_file "$test_file"
         echo ""
