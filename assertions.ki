@@ -362,3 +362,533 @@ pub fn assert_length_i32(expected_len: i32, list: List[i32]) -> AssertionResult 
         false => { return Failed(str_concat4("Expected list length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
     }
 }
+
+// =============================================================================
+// Comparison Assertions - i32 (extended)
+// =============================================================================
+
+/// Assert that actual is greater than or equal to threshold.
+pub fn assert_greater_or_eq_i32(threshold: i32, actual: i32) -> AssertionResult {
+    match actual >= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value >= ", std.string.from_i32(threshold), ", got ", std.string.from_i32(actual))) }
+    }
+}
+
+/// Assert that actual is less than or equal to threshold.
+pub fn assert_less_or_eq_i32(threshold: i32, actual: i32) -> AssertionResult {
+    match actual <= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value <= ", std.string.from_i32(threshold), ", got ", std.string.from_i32(actual))) }
+    }
+}
+
+// =============================================================================
+// Comparison Assertions - f64
+// =============================================================================
+
+/// Assert that actual is greater than threshold.
+pub fn assert_greater_f64(threshold: f64, actual: f64) -> AssertionResult {
+    match actual > threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value > ", std.string.from_f64(threshold), ", got ", std.string.from_f64(actual))) }
+    }
+}
+
+/// Assert that actual is less than threshold.
+pub fn assert_less_f64(threshold: f64, actual: f64) -> AssertionResult {
+    match actual < threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value < ", std.string.from_f64(threshold), ", got ", std.string.from_f64(actual))) }
+    }
+}
+
+/// Assert that actual is greater than or equal to threshold.
+pub fn assert_greater_or_eq_f64(threshold: f64, actual: f64) -> AssertionResult {
+    match actual >= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value >= ", std.string.from_f64(threshold), ", got ", std.string.from_f64(actual))) }
+    }
+}
+
+/// Assert that actual is less than or equal to threshold.
+pub fn assert_less_or_eq_f64(threshold: f64, actual: f64) -> AssertionResult {
+    match actual <= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value <= ", std.string.from_f64(threshold), ", got ", std.string.from_f64(actual))) }
+    }
+}
+
+// =============================================================================
+// Equality Assertions - i64
+// =============================================================================
+
+/// Assert that two i64 values are equal.
+pub fn assert_eq_i64(expected: i64, actual: i64) -> AssertionResult {
+    match expected == actual {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected ", std.string.from_i64(expected), ", got ", std.string.from_i64(actual))) }
+    }
+}
+
+/// Assert that two i64 values are not equal.
+pub fn assert_not_eq_i64(not_expected: i64, actual: i64) -> AssertionResult {
+    match not_expected != actual {
+        true => { return Passed }
+        false => { return Failed(std.string.concat("Expected value different from ", std.string.from_i64(not_expected))) }
+    }
+}
+
+// =============================================================================
+// Comparison Assertions - i64
+// =============================================================================
+
+/// Assert that actual is greater than threshold.
+pub fn assert_greater_i64(threshold: i64, actual: i64) -> AssertionResult {
+    match actual > threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value > ", std.string.from_i64(threshold), ", got ", std.string.from_i64(actual))) }
+    }
+}
+
+/// Assert that actual is less than threshold.
+pub fn assert_less_i64(threshold: i64, actual: i64) -> AssertionResult {
+    match actual < threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value < ", std.string.from_i64(threshold), ", got ", std.string.from_i64(actual))) }
+    }
+}
+
+/// Assert that actual is greater than or equal to threshold.
+pub fn assert_greater_or_eq_i64(threshold: i64, actual: i64) -> AssertionResult {
+    match actual >= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value >= ", std.string.from_i64(threshold), ", got ", std.string.from_i64(actual))) }
+    }
+}
+
+/// Assert that actual is less than or equal to threshold.
+pub fn assert_less_or_eq_i64(threshold: i64, actual: i64) -> AssertionResult {
+    match actual <= threshold {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected value <= ", std.string.from_i64(threshold), ", got ", std.string.from_i64(actual))) }
+    }
+}
+
+/// Assert that actual is within range [min, max] inclusive.
+pub fn assert_in_range_i64(min: i64, max: i64, actual: i64) -> AssertionResult {
+    match actual >= min and actual <= max {
+        true => { return Passed }
+        false => { return Failed(str_concat5("Expected value in range [", std.string.from_i64(min), ", ", std.string.from_i64(max), std.string.concat("], got ", std.string.from_i64(actual)))) }
+    }
+}
+
+// =============================================================================
+// Result Assertions - string (extended)
+// =============================================================================
+
+/// Assert that a Result[string, string] is Ok.
+pub fn assert_ok_str(res: Result[string, string]) -> AssertionResult {
+    match res {
+        Ok(_) => { return Passed }
+        Err(e) => { return Failed(str_concat3("Expected Ok, got Err(\"", e, "\")")) }
+    }
+}
+
+/// Assert that a Result[string, string] is Ok with the expected value.
+pub fn assert_ok_eq_str(expected: string, res: Result[string, string]) -> AssertionResult {
+    match res {
+        Ok(v) => {
+            match v == expected {
+                true => { return Passed }
+                false => { return Failed(str_concat5("Expected Ok(\"", expected, "\"), got Ok(\"", v, "\")")) }
+            }
+        }
+        Err(e) => { return Failed(str_concat5("Expected Ok(\"", expected, "\"), got Err(\"", e, "\")")) }
+    }
+}
+
+// =============================================================================
+// List Assertions - Element Membership
+// =============================================================================
+
+fn list_contains_i32(list: List[i32], element: i32) -> bool {
+    match list {
+        Nil => { return false }
+        Cons(head, tail) => {
+            match head == element {
+                true => { return true }
+                false => { return list_contains_i32(tail, element) }
+            }
+        }
+    }
+}
+
+/// Assert that a list contains the specified element.
+pub fn assert_contains_i32(list: List[i32], element: i32) -> AssertionResult {
+    match list_contains_i32(list, element) {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected list to contain ", std.string.from_i32(element), ", but it does not")) }
+    }
+}
+
+/// Assert that a list does not contain the specified element.
+pub fn assert_not_contains_i32(list: List[i32], element: i32) -> AssertionResult {
+    match list_contains_i32(list, element) {
+        false => { return Passed }
+        true => { return Failed(str_concat3("Expected list to not contain ", std.string.from_i32(element), ", but it does")) }
+    }
+}
+
+fn list_contains_str(list: List[string], element: string) -> bool {
+    match list {
+        Nil => { return false }
+        Cons(head, tail) => {
+            match head == element {
+                true => { return true }
+                false => { return list_contains_str(tail, element) }
+            }
+        }
+    }
+}
+
+/// Assert that a list of strings contains the specified element.
+pub fn assert_contains_str_list(list: List[string], element: string) -> AssertionResult {
+    match list_contains_str(list, element) {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected list to contain \"", element, "\", but it does not")) }
+    }
+}
+
+/// Assert that a list of strings does not contain the specified element.
+pub fn assert_not_contains_str_list(list: List[string], element: string) -> AssertionResult {
+    match list_contains_str(list, element) {
+        false => { return Passed }
+        true => { return Failed(str_concat3("Expected list to not contain \"", element, "\", but it does")) }
+    }
+}
+
+// =============================================================================
+// List Assertions - Equality
+// =============================================================================
+
+fn lists_equal_i32(a: List[i32], b: List[i32]) -> bool {
+    match a {
+        Nil => {
+            match b {
+                Nil => { return true }
+                Cons(_, _) => { return false }
+            }
+        }
+        Cons(head_a, tail_a) => {
+            match b {
+                Nil => { return false }
+                Cons(head_b, tail_b) => {
+                    match head_a == head_b {
+                        true => { return lists_equal_i32(tail_a, tail_b) }
+                        false => { return false }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Assert that two i32 lists are equal (same elements in same order).
+pub fn assert_eq_list_i32(expected: List[i32], actual: List[i32]) -> AssertionResult {
+    match lists_equal_i32(expected, actual) {
+        true => { return Passed }
+        false => { return Failed("Expected lists to be equal, but they differ") }
+    }
+}
+
+fn lists_equal_str(a: List[string], b: List[string]) -> bool {
+    match a {
+        Nil => {
+            match b {
+                Nil => { return true }
+                Cons(_, _) => { return false }
+            }
+        }
+        Cons(head_a, tail_a) => {
+            match b {
+                Nil => { return false }
+                Cons(head_b, tail_b) => {
+                    match head_a == head_b {
+                        true => { return lists_equal_str(tail_a, tail_b) }
+                        false => { return false }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Assert that two string lists are equal (same elements in same order).
+pub fn assert_eq_list_str(expected: List[string], actual: List[string]) -> AssertionResult {
+    match lists_equal_str(expected, actual) {
+        true => { return Passed }
+        false => { return Failed("Expected lists to be equal, but they differ") }
+    }
+}
+
+// =============================================================================
+// String Value Assertions
+// =============================================================================
+
+/// Assert that a string is empty.
+pub fn assert_empty_string(s: string) -> AssertionResult {
+    match std.string.length(s) == 0 {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected empty string, got \"", s, "\"")) }
+    }
+}
+
+/// Assert that a string is not empty.
+pub fn assert_not_empty_string(s: string) -> AssertionResult {
+    match std.string.length(s) > 0 {
+        true => { return Passed }
+        false => { return Failed("Expected non-empty string, got empty string") }
+    }
+}
+
+/// Assert that a string has the expected length.
+pub fn assert_str_length(expected_len: i32, s: string) -> AssertionResult {
+    let actual_len: i32 = std.string.length(s)
+    match actual_len == expected_len {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected string length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
+    }
+}
+
+// =============================================================================
+// String Negation Assertions
+// =============================================================================
+
+/// Assert that haystack does not contain needle.
+pub fn assert_not_contains(haystack: string, needle: string) -> AssertionResult {
+    match std.string.contains(haystack, needle) {
+        false => { return Passed }
+        true => { return Failed(str_concat5("Expected \"", haystack, "\" to not contain \"", needle, "\"")) }
+    }
+}
+
+/// Assert that string does not start with prefix.
+pub fn assert_not_starts_with(s: string, prefix: string) -> AssertionResult {
+    match std.string.starts_with(s, prefix) {
+        false => { return Passed }
+        true => { return Failed(str_concat5("Expected \"", s, "\" to not start with \"", prefix, "\"")) }
+    }
+}
+
+/// Assert that string does not end with suffix.
+pub fn assert_not_ends_with(s: string, suffix: string) -> AssertionResult {
+    match std.string.ends_with(s, suffix) {
+        false => { return Passed }
+        true => { return Failed(str_concat5("Expected \"", s, "\" to not end with \"", suffix, "\"")) }
+    }
+}
+
+// =============================================================================
+// Predicate-Based List Assertions
+// =============================================================================
+
+fn all_satisfy_i32(list: List[i32], pred: fn(i32) -> bool) -> bool {
+    match list {
+        Nil => { return true }
+        Cons(head, tail) => {
+            match pred(head) {
+                true => { return all_satisfy_i32(tail, pred) }
+                false => { return false }
+            }
+        }
+    }
+}
+
+/// Assert that all elements in the list satisfy the predicate.
+pub fn assert_all_i32(list: List[i32], pred: fn(i32) -> bool) -> AssertionResult {
+    match all_satisfy_i32(list, pred) {
+        true => { return Passed }
+        false => { return Failed("Expected all elements to satisfy predicate, but at least one does not") }
+    }
+}
+
+fn any_satisfies_i32(list: List[i32], pred: fn(i32) -> bool) -> bool {
+    match list {
+        Nil => { return false }
+        Cons(head, tail) => {
+            match pred(head) {
+                true => { return true }
+                false => { return any_satisfies_i32(tail, pred) }
+            }
+        }
+    }
+}
+
+/// Assert that at least one element in the list satisfies the predicate.
+pub fn assert_any_i32(list: List[i32], pred: fn(i32) -> bool) -> AssertionResult {
+    match any_satisfies_i32(list, pred) {
+        true => { return Passed }
+        false => { return Failed("Expected at least one element to satisfy predicate, but none do") }
+    }
+}
+
+fn all_satisfy_str(list: List[string], pred: fn(string) -> bool) -> bool {
+    match list {
+        Nil => { return true }
+        Cons(head, tail) => {
+            match pred(head) {
+                true => { return all_satisfy_str(tail, pred) }
+                false => { return false }
+            }
+        }
+    }
+}
+
+/// Assert that all elements in the string list satisfy the predicate.
+pub fn assert_all_str(list: List[string], pred: fn(string) -> bool) -> AssertionResult {
+    match all_satisfy_str(list, pred) {
+        true => { return Passed }
+        false => { return Failed("Expected all elements to satisfy predicate, but at least one does not") }
+    }
+}
+
+fn any_satisfies_str(list: List[string], pred: fn(string) -> bool) -> bool {
+    match list {
+        Nil => { return false }
+        Cons(head, tail) => {
+            match pred(head) {
+                true => { return true }
+                false => { return any_satisfies_str(tail, pred) }
+            }
+        }
+    }
+}
+
+/// Assert that at least one element in the string list satisfies the predicate.
+pub fn assert_any_str(list: List[string], pred: fn(string) -> bool) -> AssertionResult {
+    match any_satisfies_str(list, pred) {
+        true => { return Passed }
+        false => { return Failed("Expected at least one element to satisfy predicate, but none do") }
+    }
+}
+
+// =============================================================================
+// One-Of Assertions
+// =============================================================================
+
+/// Assert that actual is one of the values in the options list.
+pub fn assert_one_of_i32(actual: i32, options: List[i32]) -> AssertionResult {
+    match list_contains_i32(options, actual) {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected ", std.string.from_i32(actual), " to be one of the allowed values")) }
+    }
+}
+
+/// Assert that actual is one of the strings in the options list.
+pub fn assert_one_of_str(actual: string, options: List[string]) -> AssertionResult {
+    match list_contains_str(options, actual) {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected \"", actual, "\" to be one of the allowed values")) }
+    }
+}
+
+// =============================================================================
+// Custom Predicate Assertions
+// =============================================================================
+
+/// Assert that actual satisfies the predicate, with a custom description.
+pub fn assert_satisfies_i32(actual: i32, pred: fn(i32) -> bool, desc: string) -> AssertionResult {
+    match pred(actual) {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected ", std.string.from_i32(actual), " to satisfy: ", desc)) }
+    }
+}
+
+/// Assert that actual satisfies the predicate, with a custom description.
+pub fn assert_satisfies_str(actual: string, pred: fn(string) -> bool, desc: string) -> AssertionResult {
+    match pred(actual) {
+        true => { return Passed }
+        false => { return Failed(str_concat5("Expected \"", actual, "\" to satisfy: ", desc, "")) }
+    }
+}
+
+// =============================================================================
+// Option Assertions - f64
+// =============================================================================
+
+/// Assert that an Option[f64] is Some.
+pub fn assert_some_f64(opt: Option[f64]) -> AssertionResult {
+    match opt {
+        Some(_) => { return Passed }
+        None => { return Failed("Expected Some, got None") }
+    }
+}
+
+/// Assert that an Option[f64] is None.
+pub fn assert_none_f64(opt: Option[f64]) -> AssertionResult {
+    match opt {
+        None => { return Passed }
+        Some(v) => { return Failed(str_concat3("Expected None, got Some(", std.string.from_f64(v), ")")) }
+    }
+}
+
+/// Assert that an Option[f64] is Some with the expected value.
+pub fn assert_some_eq_f64(expected: f64, opt: Option[f64]) -> AssertionResult {
+    match opt {
+        Some(v) => {
+            match v == expected {
+                true => { return Passed }
+                false => { return Failed(str_concat5("Expected Some(", std.string.from_f64(expected), "), got Some(", std.string.from_f64(v), ")")) }
+            }
+        }
+        None => { return Failed(str_concat3("Expected Some(", std.string.from_f64(expected), "), got None")) }
+    }
+}
+
+/// Assert that an Option[f64] is Some with a value approximately equal to expected.
+pub fn assert_some_approx_eq_f64(expected: f64, opt: Option[f64], epsilon: f64) -> AssertionResult {
+    match opt {
+        Some(v) => {
+            let diff: f64 = expected - v
+            let abs_diff: f64 = match diff < 0.0 {
+                true => { return 0.0 - diff }
+                false => { return diff }
+            }
+            match abs_diff <= epsilon {
+                true => { return Passed }
+                false => { return Failed(str_concat5("Expected Some(", std.string.from_f64(expected), " +/- ", std.string.from_f64(epsilon), std.string.concat("), got Some(", std.string.concat(std.string.from_f64(v), ")")))) }
+            }
+        }
+        None => { return Failed(str_concat5("Expected Some(", std.string.from_f64(expected), " +/- ", std.string.from_f64(epsilon), "), got None")) }
+    }
+}
+
+// =============================================================================
+// List Assertions - string
+// =============================================================================
+
+/// Assert that a string list is empty.
+pub fn assert_empty_str_list(list: List[string]) -> AssertionResult {
+    match std.list.length(list) == 0 {
+        true => { return Passed }
+        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i32(std.list.length(list)), " elements")) }
+    }
+}
+
+/// Assert that a string list is not empty.
+pub fn assert_not_empty_str_list(list: List[string]) -> AssertionResult {
+    match std.list.length(list) > 0 {
+        true => { return Passed }
+        false => { return Failed("Expected non-empty list, got empty list") }
+    }
+}
+
+/// Assert that a string list has the expected length.
+pub fn assert_length_str_list(expected_len: i32, list: List[string]) -> AssertionResult {
+    let actual_len: i32 = std.list.length(list)
+    match actual_len == expected_len {
+        true => { return Passed }
+        false => { return Failed(str_concat4("Expected list length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
+    }
+}

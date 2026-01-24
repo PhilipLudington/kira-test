@@ -40,6 +40,9 @@ import kira_test.assertions.{
     // Equality - i32
     assert_eq_i32,
     assert_not_eq_i32,
+    // Equality - i64
+    assert_eq_i64,
+    assert_not_eq_i64,
     // Equality - string
     assert_eq_str,
     assert_not_eq_str,
@@ -51,8 +54,21 @@ import kira_test.assertions.{
     // Comparison - i32
     assert_greater_i32,
     assert_less_i32,
+    assert_greater_or_eq_i32,
+    assert_less_or_eq_i32,
+    // Comparison - i64
+    assert_greater_i64,
+    assert_less_i64,
+    assert_greater_or_eq_i64,
+    assert_less_or_eq_i64,
+    // Comparison - f64
+    assert_greater_f64,
+    assert_less_f64,
+    assert_greater_or_eq_f64,
+    assert_less_or_eq_f64,
     // Range
     assert_in_range_i32,
+    assert_in_range_i64,
     assert_in_range_f64,
     // Option - i32
     assert_some_i32,
@@ -62,22 +78,58 @@ import kira_test.assertions.{
     assert_some_str,
     assert_none_str,
     assert_some_eq_str,
+    // Option - f64
+    assert_some_f64,
+    assert_none_f64,
+    assert_some_eq_f64,
+    assert_some_approx_eq_f64,
     // Result - i32
     assert_ok_i32,
     assert_err_i32,
     assert_ok_eq_i32,
     assert_err_contains_i32,
     // Result - string
+    assert_ok_str,
+    assert_ok_eq_str,
     assert_err_str,
     assert_err_contains_str,
     // String content
     assert_contains,
     assert_starts_with,
     assert_ends_with,
+    // String negation
+    assert_not_contains,
+    assert_not_starts_with,
+    assert_not_ends_with,
+    // String value
+    assert_empty_string,
+    assert_not_empty_string,
+    assert_str_length,
     // List - i32
     assert_empty_i32,
     assert_not_empty_i32,
-    assert_length_i32
+    assert_length_i32,
+    assert_contains_i32,
+    assert_not_contains_i32,
+    assert_eq_list_i32,
+    // List - string
+    assert_empty_str_list,
+    assert_not_empty_str_list,
+    assert_length_str_list,
+    assert_contains_str_list,
+    assert_not_contains_str_list,
+    assert_eq_list_str,
+    // Predicate-based assertions
+    assert_all_i32,
+    assert_any_i32,
+    assert_all_str,
+    assert_any_str,
+    // One-of assertions
+    assert_one_of_i32,
+    assert_one_of_str,
+    // Custom predicate assertions
+    assert_satisfies_i32,
+    assert_satisfies_str
 }
 
 // =============================================================================

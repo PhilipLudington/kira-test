@@ -1,0 +1,533 @@
+//! Tests for the extended assertion functions added to kira_test.
+
+module test_assertions_extended
+
+import kira_test.{
+    test,
+    suite,
+    run_and_report,
+    // Comparison assertions
+    assert_greater_or_eq_i32,
+    assert_less_or_eq_i32,
+    assert_greater_f64,
+    assert_less_f64,
+    assert_greater_or_eq_f64,
+    assert_less_or_eq_f64,
+    // i64 assertions
+    assert_eq_i64,
+    assert_not_eq_i64,
+    assert_greater_i64,
+    assert_less_i64,
+    assert_greater_or_eq_i64,
+    assert_less_or_eq_i64,
+    assert_in_range_i64,
+    // Result string assertions
+    assert_ok_str,
+    assert_ok_eq_str,
+    // List membership
+    assert_contains_i32,
+    assert_not_contains_i32,
+    assert_contains_str_list,
+    assert_not_contains_str_list,
+    // List equality
+    assert_eq_list_i32,
+    assert_eq_list_str,
+    // String value assertions
+    assert_empty_string,
+    assert_not_empty_string,
+    assert_str_length,
+    // String negation
+    assert_not_contains,
+    assert_not_starts_with,
+    assert_not_ends_with,
+    // Predicate assertions
+    assert_all_i32,
+    assert_any_i32,
+    assert_all_str,
+    assert_any_str,
+    // One-of assertions
+    assert_one_of_i32,
+    assert_one_of_str,
+    // Custom predicates
+    assert_satisfies_i32,
+    assert_satisfies_str,
+    // Option f64
+    assert_some_f64,
+    assert_none_f64,
+    assert_some_eq_f64,
+    assert_some_approx_eq_f64,
+    // List string basic
+    assert_empty_str_list,
+    assert_not_empty_str_list,
+    assert_length_str_list,
+    // Types
+    AssertionResult,
+    Passed,
+    Failed,
+    TestSuite,
+    TestCase
+}
+import std.option.{ Option, Some, None }
+import std.result.{ Result, Ok, Err }
+import std.list.{ List, Cons, Nil }
+
+// =============================================================================
+// Comparison Assertions - i32 Extended
+// =============================================================================
+
+let test_greater_or_eq_i32_passes_greater: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_or_eq_i32(5, 10)
+}
+
+let test_greater_or_eq_i32_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_or_eq_i32(5, 5)
+}
+
+let test_greater_or_eq_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_greater_or_eq_i32(10, 5)
+    match result {
+        Passed => { return Failed("Expected assert_greater_or_eq_i32(10, 5) to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_less_or_eq_i32_passes_less: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_or_eq_i32(10, 5)
+}
+
+let test_less_or_eq_i32_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_or_eq_i32(5, 5)
+}
+
+// =============================================================================
+// Comparison Assertions - f64
+// =============================================================================
+
+let test_greater_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_f64(1.0, 2.5)
+}
+
+let test_less_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_f64(5.0, 2.5)
+}
+
+let test_greater_or_eq_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_or_eq_f64(3.14, 3.14)
+}
+
+let test_less_or_eq_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_or_eq_f64(3.14, 3.14)
+}
+
+// =============================================================================
+// i64 Assertions
+// =============================================================================
+
+let test_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_eq_i64(9223372036854775807, 9223372036854775807)
+}
+
+let test_not_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_not_eq_i64(100, 200)
+}
+
+let test_greater_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_i64(100, 200)
+}
+
+let test_less_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_i64(200, 100)
+}
+
+let test_greater_or_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_or_eq_i64(50, 100)
+}
+
+let test_greater_or_eq_i64_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_greater_or_eq_i64(50, 50)
+}
+
+let test_less_or_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_or_eq_i64(100, 50)
+}
+
+let test_less_or_eq_i64_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_less_or_eq_i64(50, 50)
+}
+
+let test_in_range_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_in_range_i64(0, 100, 50)
+}
+
+// =============================================================================
+// Result String Assertions
+// =============================================================================
+
+let test_ok_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let res: Result[string, string] = Ok("success")
+    return assert_ok_str(res)
+}
+
+let test_ok_eq_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let res: Result[string, string] = Ok("hello")
+    return assert_ok_eq_str("hello", res)
+}
+
+let test_ok_eq_str_fails_wrong_value: fn() -> AssertionResult = fn() -> AssertionResult {
+    let res: Result[string, string] = Ok("goodbye")
+    let result: AssertionResult = assert_ok_eq_str("hello", res)
+    match result {
+        Passed => { return Failed("Expected to fail with wrong value") }
+        Failed(_) => { return Passed }
+    }
+}
+
+// =============================================================================
+// List Membership Assertions
+// =============================================================================
+
+let test_contains_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    return assert_contains_i32(list, 2)
+}
+
+let test_contains_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    let result: AssertionResult = assert_contains_i32(list, 5)
+    match result {
+        Passed => { return Failed("Expected assert_contains_i32 to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_not_contains_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    return assert_not_contains_i32(list, 5)
+}
+
+let test_contains_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("apple", Cons("banana", Nil))
+    return assert_contains_str_list(list, "banana")
+}
+
+let test_not_contains_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("apple", Cons("banana", Nil))
+    return assert_not_contains_str_list(list, "cherry")
+}
+
+let test_not_contains_str_list_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("apple", Cons("banana", Nil))
+    let result: AssertionResult = assert_not_contains_str_list(list, "apple")
+    match result {
+        Passed => { return Failed("Expected assert_not_contains_str_list to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+// =============================================================================
+// List Equality Assertions
+// =============================================================================
+
+let test_eq_list_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let a: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    let b: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    return assert_eq_list_i32(a, b)
+}
+
+let test_eq_list_i32_fails_different: fn() -> AssertionResult = fn() -> AssertionResult {
+    let a: List[i32] = Cons(1, Cons(2, Nil))
+    let b: List[i32] = Cons(1, Cons(3, Nil))
+    let result: AssertionResult = assert_eq_list_i32(a, b)
+    match result {
+        Passed => { return Failed("Expected lists to be different") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_eq_list_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let a: List[string] = Cons("a", Cons("b", Nil))
+    let b: List[string] = Cons("a", Cons("b", Nil))
+    return assert_eq_list_str(a, b)
+}
+
+// =============================================================================
+// String Value Assertions
+// =============================================================================
+
+let test_empty_string_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_empty_string("")
+}
+
+let test_empty_string_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_empty_string("not empty")
+    match result {
+        Passed => { return Failed("Expected assert_empty_string to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_not_empty_string_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_not_empty_string("hello")
+}
+
+let test_str_length_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_str_length(5, "hello")
+}
+
+// =============================================================================
+// String Negation Assertions
+// =============================================================================
+
+let test_not_contains_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_not_contains("hello world", "foo")
+}
+
+let test_not_contains_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_not_contains("hello world", "world")
+    match result {
+        Passed => { return Failed("Expected assert_not_contains to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_not_starts_with_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_not_starts_with("hello", "world")
+}
+
+let test_not_ends_with_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_not_ends_with("hello", "world")
+}
+
+// =============================================================================
+// Predicate Assertions
+// =============================================================================
+
+let is_positive: fn(i32) -> bool = fn(x: i32) -> bool {
+    return x > 0
+}
+
+let is_even: fn(i32) -> bool = fn(x: i32) -> bool {
+    return x % 2 == 0
+}
+
+let test_all_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(2, Cons(4, Cons(6, Nil)))
+    return assert_all_i32(list, is_even)
+}
+
+let test_all_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(2, Cons(3, Cons(6, Nil)))
+    let result: AssertionResult = assert_all_i32(list, is_even)
+    match result {
+        Passed => { return Failed("Expected assert_all_i32 to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_any_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    return assert_any_i32(list, is_even)
+}
+
+let test_any_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[i32] = Cons(1, Cons(3, Cons(5, Nil)))
+    let result: AssertionResult = assert_any_i32(list, is_even)
+    match result {
+        Passed => { return Failed("Expected assert_any_i32 to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let is_non_empty: fn(string) -> bool = fn(s: string) -> bool {
+    return std.string.length(s) > 0
+}
+
+let test_all_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("a", Cons("bc", Nil))
+    return assert_all_str(list, is_non_empty)
+}
+
+let test_any_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("", Cons("hello", Nil))
+    return assert_any_str(list, is_non_empty)
+}
+
+// =============================================================================
+// One-Of Assertions
+// =============================================================================
+
+let test_one_of_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let options: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    return assert_one_of_i32(2, options)
+}
+
+let test_one_of_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let options: List[i32] = Cons(1, Cons(2, Cons(3, Nil)))
+    let result: AssertionResult = assert_one_of_i32(5, options)
+    match result {
+        Passed => { return Failed("Expected assert_one_of_i32 to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_one_of_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let options: List[string] = Cons("red", Cons("green", Cons("blue", Nil)))
+    return assert_one_of_str("green", options)
+}
+
+// =============================================================================
+// Custom Predicate Assertions
+// =============================================================================
+
+let test_satisfies_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_satisfies_i32(42, is_positive, "be positive")
+}
+
+let test_satisfies_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_satisfies_i32(-5, is_positive, "be positive")
+    match result {
+        Passed => { return Failed("Expected assert_satisfies_i32 to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_satisfies_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_satisfies_str("hello", is_non_empty, "be non-empty")
+}
+
+// =============================================================================
+// Option f64 Assertions
+// =============================================================================
+
+let test_some_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[f64] = Some(3.14)
+    return assert_some_f64(opt)
+}
+
+let test_none_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[f64] = None
+    return assert_none_f64(opt)
+}
+
+let test_some_eq_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[f64] = Some(2.718)
+    return assert_some_eq_f64(2.718, opt)
+}
+
+let test_some_approx_eq_f64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[f64] = Some(3.14159)
+    return assert_some_approx_eq_f64(3.14, opt, 0.01)
+}
+
+// =============================================================================
+// List String Basic Assertions
+// =============================================================================
+
+let test_empty_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Nil
+    return assert_empty_str_list(list)
+}
+
+let test_not_empty_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("hello", Nil)
+    return assert_not_empty_str_list(list)
+}
+
+let test_length_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let list: List[string] = Cons("a", Cons("b", Cons("c", Nil)))
+    return assert_length_str_list(3, list)
+}
+
+// =============================================================================
+// Test Suite
+// =============================================================================
+
+let extended_assertion_tests: TestSuite = suite("Extended Assertion Tests", [
+    // Comparison i32 extended
+    test("assert_greater_or_eq_i32 passes on greater", test_greater_or_eq_i32_passes_greater),
+    test("assert_greater_or_eq_i32 passes on equal", test_greater_or_eq_i32_passes_equal),
+    test("assert_greater_or_eq_i32 fails correctly", test_greater_or_eq_i32_fails),
+    test("assert_less_or_eq_i32 passes on less", test_less_or_eq_i32_passes_less),
+    test("assert_less_or_eq_i32 passes on equal", test_less_or_eq_i32_passes_equal),
+
+    // Comparison f64
+    test("assert_greater_f64 passes", test_greater_f64_passes),
+    test("assert_less_f64 passes", test_less_f64_passes),
+    test("assert_greater_or_eq_f64 passes", test_greater_or_eq_f64_passes),
+    test("assert_less_or_eq_f64 passes", test_less_or_eq_f64_passes),
+
+    // i64
+    test("assert_eq_i64 passes", test_eq_i64_passes),
+    test("assert_not_eq_i64 passes", test_not_eq_i64_passes),
+    test("assert_greater_i64 passes", test_greater_i64_passes),
+    test("assert_less_i64 passes", test_less_i64_passes),
+    test("assert_greater_or_eq_i64 passes", test_greater_or_eq_i64_passes),
+    test("assert_greater_or_eq_i64 passes on equal", test_greater_or_eq_i64_passes_equal),
+    test("assert_less_or_eq_i64 passes", test_less_or_eq_i64_passes),
+    test("assert_less_or_eq_i64 passes on equal", test_less_or_eq_i64_passes_equal),
+    test("assert_in_range_i64 passes", test_in_range_i64_passes),
+
+    // Result string
+    test("assert_ok_str passes", test_ok_str_passes),
+    test("assert_ok_eq_str passes", test_ok_eq_str_passes),
+    test("assert_ok_eq_str fails on wrong value", test_ok_eq_str_fails_wrong_value),
+
+    // List membership
+    test("assert_contains_i32 passes", test_contains_i32_passes),
+    test("assert_contains_i32 fails correctly", test_contains_i32_fails),
+    test("assert_not_contains_i32 passes", test_not_contains_i32_passes),
+    test("assert_contains_str_list passes", test_contains_str_list_passes),
+    test("assert_not_contains_str_list passes", test_not_contains_str_list_passes),
+    test("assert_not_contains_str_list fails correctly", test_not_contains_str_list_fails),
+
+    // List equality
+    test("assert_eq_list_i32 passes on equal lists", test_eq_list_i32_passes),
+    test("assert_eq_list_i32 fails on different lists", test_eq_list_i32_fails_different),
+    test("assert_eq_list_str passes on equal lists", test_eq_list_str_passes),
+
+    // String value
+    test("assert_empty_string passes on empty", test_empty_string_passes),
+    test("assert_empty_string fails on non-empty", test_empty_string_fails),
+    test("assert_not_empty_string passes", test_not_empty_string_passes),
+    test("assert_str_length passes", test_str_length_passes),
+
+    // String negation
+    test("assert_not_contains passes", test_not_contains_passes),
+    test("assert_not_contains fails correctly", test_not_contains_fails),
+    test("assert_not_starts_with passes", test_not_starts_with_passes),
+    test("assert_not_ends_with passes", test_not_ends_with_passes),
+
+    // Predicate assertions
+    test("assert_all_i32 passes when all match", test_all_i32_passes),
+    test("assert_all_i32 fails when one doesn't match", test_all_i32_fails),
+    test("assert_any_i32 passes when one matches", test_any_i32_passes),
+    test("assert_any_i32 fails when none match", test_any_i32_fails),
+    test("assert_all_str passes", test_all_str_passes),
+    test("assert_any_str passes", test_any_str_passes),
+
+    // One-of
+    test("assert_one_of_i32 passes", test_one_of_i32_passes),
+    test("assert_one_of_i32 fails correctly", test_one_of_i32_fails),
+    test("assert_one_of_str passes", test_one_of_str_passes),
+
+    // Custom predicate
+    test("assert_satisfies_i32 passes", test_satisfies_i32_passes),
+    test("assert_satisfies_i32 fails correctly", test_satisfies_i32_fails),
+    test("assert_satisfies_str passes", test_satisfies_str_passes),
+
+    // Option f64
+    test("assert_some_f64 passes", test_some_f64_passes),
+    test("assert_none_f64 passes", test_none_f64_passes),
+    test("assert_some_eq_f64 passes", test_some_eq_f64_passes),
+    test("assert_some_approx_eq_f64 passes", test_some_approx_eq_f64_passes),
+
+    // List string basic
+    test("assert_empty_str_list passes", test_empty_str_list_passes),
+    test("assert_not_empty_str_list passes", test_not_empty_str_list_passes),
+    test("assert_length_str_list passes", test_length_str_list_passes)
+])
+
+effect fn main() -> IO[void] {
+    run_and_report(extended_assertion_tests)
+    return
+}
