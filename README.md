@@ -13,23 +13,34 @@ A functional testing framework for the Kira programming language.
 
 ## Installation
 
-Add the `kira_test` package to your project:
+### As a Git Submodule (Recommended)
+
+```bash
+git submodule add <repo-url> deps/kira_test
+```
+
+Then add to your project's `kira.toml`:
+
+```toml
+[modules]
+kira_test = "deps/kira_test"
+```
+
+### Project Structure
 
 ```
 your-project/
-  kira_test/          # Copy from this repository
-    kira_test.ki      # Main module (re-exports all public items)
-    types.ki          # Core type definitions
-    assertions.ki     # Assertion functions
-    tagging.ki        # Tag filtering
-    builders.ki       # Test/suite/config builders
-    runners.ki        # Test execution
-    reporters.ki      # Result reporting
-  tests/
-    test_your_module.ki
+├── kira.toml              # Your project manifest
+├── deps/
+│   └── kira_test/         # This package (submodule)
+│       ├── kira.toml      # Package manifest
+│       ├── kira_test.ki   # Main entry point
+│       └── ...
+├── src/
+│   └── main.ki
+└── tests/
+    └── test_your_module.ki
 ```
-
-Or import it as a package dependency (when package management is available).
 
 ## Usage
 
@@ -199,6 +210,22 @@ let config: RunConfig = config_with_tags(tags)
 
 // Full configuration
 let config: RunConfig = config_full(true, Some(tags))
+```
+
+## Package Structure
+
+```
+kira_test/
+├── kira.toml          # Package manifest
+├── kira_test.ki       # Main entry (re-exports all public items)
+├── types.ki           # Core type definitions (ADTs)
+├── assertions.ki      # Assertion functions
+├── builders.ki        # Test/suite/config builders
+├── runners.ki         # Test execution functions
+├── tagging.ki         # Tag filtering
+├── reporters.ki       # Result reporting (effect functions)
+├── tests/             # Self-tests
+└── examples/          # Usage examples
 ```
 
 ## Examples

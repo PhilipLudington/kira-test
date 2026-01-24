@@ -1,0 +1,131 @@
+//! Self-tests for the kira_test assertion functions.
+
+module test_assertions
+
+import kira_test.{
+    test,
+    suite,
+    run_and_report,
+    assert_true,
+    assert_false,
+    assert_eq_i32,
+    assert_eq_str,
+    assert_some_i32,
+    assert_none_i32,
+    assert_ok_i32,
+    assert_err_i32,
+    assert_contains,
+    AssertionResult,
+    Passed,
+    Failed
+}
+import std.option.{ Option, Some, None }
+import std.result.{ Result, Ok, Err }
+
+// =============================================================================
+// Boolean Assertion Tests
+// =============================================================================
+
+let test_assert_true_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_true(true)
+}
+
+let test_assert_true_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_true(false)
+    match result {
+        Passed => { return Failed("Expected assert_true(false) to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_assert_false_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_false(false)
+}
+
+// =============================================================================
+// Equality Assertion Tests
+// =============================================================================
+
+let test_assert_eq_i32_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_eq_i32(42, 42)
+}
+
+let test_assert_eq_i32_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_eq_i32(1, 2)
+    match result {
+        Passed => { return Failed("Expected assert_eq_i32(1, 2) to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+let test_assert_eq_str_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_eq_str("hello", "hello")
+}
+
+// =============================================================================
+// Option Assertion Tests
+// =============================================================================
+
+let test_assert_some_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[i32] = Some(42)
+    return assert_some_i32(opt)
+}
+
+let test_assert_none_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let opt: Option[i32] = None
+    return assert_none_i32(opt)
+}
+
+// =============================================================================
+// Result Assertion Tests
+// =============================================================================
+
+let test_assert_ok_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let res: Result[i32, string] = Ok(42)
+    return assert_ok_i32(res)
+}
+
+let test_assert_err_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    let res: Result[i32, string] = Err("error")
+    return assert_err_i32(res)
+}
+
+// =============================================================================
+// String Assertion Tests
+// =============================================================================
+
+let test_assert_contains_passes: fn() -> AssertionResult = fn() -> AssertionResult {
+    return assert_contains("hello world", "world")
+}
+
+let test_assert_contains_fails: fn() -> AssertionResult = fn() -> AssertionResult {
+    let result: AssertionResult = assert_contains("hello", "world")
+    match result {
+        Passed => { return Failed("Expected assert_contains to fail") }
+        Failed(_) => { return Passed }
+    }
+}
+
+// =============================================================================
+// Test Suite
+// =============================================================================
+
+let assertion_tests: TestSuite = suite("Assertion Tests", [
+    test("assert_true passes on true", test_assert_true_passes),
+    test("assert_true fails on false", test_assert_true_fails),
+    test("assert_false passes on false", test_assert_false_passes),
+    test("assert_eq_i32 passes on equal", test_assert_eq_i32_passes),
+    test("assert_eq_i32 fails on unequal", test_assert_eq_i32_fails),
+    test("assert_eq_str passes on equal", test_assert_eq_str_passes),
+    test("assert_some passes on Some", test_assert_some_passes),
+    test("assert_none passes on None", test_assert_none_passes),
+    test("assert_ok passes on Ok", test_assert_ok_passes),
+    test("assert_err passes on Err", test_assert_err_passes),
+    test("assert_contains passes when found", test_assert_contains_passes),
+    test("assert_contains fails when not found", test_assert_contains_fails)
+])
+
+effect fn main() -> IO[void] {
+    run_and_report(assertion_tests)
+    return
+}

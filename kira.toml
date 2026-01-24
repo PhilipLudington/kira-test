@@ -1,0 +1,18 @@
+# kira_test - A functional testing framework for Kira
+#
+# Usage: Add as a submodule and reference in your kira.toml:
+#   git submodule add <repo-url> deps/kira_test
+#
+#   [modules]
+#   kira_test = "deps/kira_test"
+
+[package]
+name = "kira_test"
+
+[modules]
+types = "types.ki"
+assertions = "assertions.ki"
+builders = "builders.ki"
+runners = "runners.ki"
+tagging = "tagging.ki"
+reporters = "reporters.ki"
