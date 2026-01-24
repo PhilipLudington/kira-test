@@ -1,6 +1,9 @@
 #!/bin/bash
 # GitStat test runner for kira-test
 # Runs all test files and outputs results to .test-results.json
+#
+# NOTE: Tests that import kira_test.* modules require running from a project
+# that has kira_test as a dependency. The standalone examples can run directly.
 
 set -e
 
@@ -32,8 +35,13 @@ run_test_file() {
                 done <<< "$output"
             fi
         else
-            # If no standard output, assume success if exit code 0
-            PASSED=$((PASSED + 1))
+            # Check for PASSED in output (standalone tests)
+            if echo "$output" | grep -q "PASSED"; then
+                PASSED=$((PASSED + 1))
+            else
+                # If no standard output, assume success if exit code 0
+                PASSED=$((PASSED + 1))
+            fi
         fi
         echo "$output"
     else
@@ -46,7 +54,17 @@ run_test_file() {
 echo "=== Running kira-test test suite ==="
 echo ""
 
-# Run all test files
+# Run standalone examples first (these don't require module imports)
+echo "--- Standalone Tests (no imports) ---"
+for test_file in examples/standalone_test.ki; do
+    if [ -f "$test_file" ]; then
+        run_test_file "$test_file"
+        echo ""
+    fi
+done
+
+# Run tests that import kira_test (require proper module setup)
+echo "--- Module Tests (require kira_test as dependency) ---"
 for test_file in tests/test_*.ki; do
     if [ -f "$test_file" ]; then
         run_test_file "$test_file"
