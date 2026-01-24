@@ -16,7 +16,7 @@ module kira_test
 // Re-export Types
 // =============================================================================
 
-pub use kira_test.types.{
+import kira_test.types.{
     AssertionResult,
     Passed,
     Failed,
@@ -33,7 +33,7 @@ pub use kira_test.types.{
 // Re-export Assertions
 // =============================================================================
 
-pub use kira_test.assertions.{
+import kira_test.assertions.{
     // Boolean
     assert_true,
     assert_false,
@@ -58,6 +58,10 @@ pub use kira_test.assertions.{
     assert_some_i32,
     assert_none_i32,
     assert_some_eq_i32,
+    // Option - string
+    assert_some_str,
+    assert_none_str,
+    assert_some_eq_str,
     // Result - i32
     assert_ok_i32,
     assert_err_i32,
@@ -80,7 +84,7 @@ pub use kira_test.assertions.{
 // Re-export Tagging
 // =============================================================================
 
-pub use kira_test.tagging.{
+import kira_test.tagging.{
     has_tag,
     has_any_tag,
     filter_by_tags
@@ -90,7 +94,7 @@ pub use kira_test.tagging.{
 // Re-export Builders
 // =============================================================================
 
-pub use kira_test.builders.{
+import kira_test.builders.{
     // Test case builders
     test,
     test_tagged,
@@ -111,7 +115,7 @@ pub use kira_test.builders.{
 // Re-export Runners
 // =============================================================================
 
-pub use kira_test.runners.{
+import kira_test.runners.{
     // Standard runners
     run_test,
     run_test_with_hooks,
@@ -134,7 +138,7 @@ pub use kira_test.runners.{
 // Re-export Reporters
 // =============================================================================
 
-pub use kira_test.reporters.{
+import kira_test.reporters.{
     // Standard reporting
     print_failure,
     print_summary,

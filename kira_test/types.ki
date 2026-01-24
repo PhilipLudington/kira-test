@@ -9,7 +9,7 @@ module kira_test.types
 // =============================================================================
 
 /// Result of a single assertion - either passed or failed with a message.
-type AssertionResult =
+pub type AssertionResult =
     | Passed
     | Failed(string)
 
@@ -18,14 +18,14 @@ type AssertionResult =
 // =============================================================================
 
 /// Result of running a single test case.
-type TestResult = {
+pub type TestResult = {
     name: string,
     passed: bool,
     message: string
 }
 
 /// Result of running a single test case with timing information.
-type TimedTestResult = {
+pub type TimedTestResult = {
     name: string,
     passed: bool,
     message: string,
@@ -37,7 +37,7 @@ type TimedTestResult = {
 // =============================================================================
 
 /// A single test case with a name, optional tags, and a test function.
-type TestCase = {
+pub type TestCase = {
     name: string,
     tags: List[string],
     run: fn() -> AssertionResult
@@ -48,7 +48,7 @@ type TestCase = {
 // =============================================================================
 
 /// A collection of test cases with optional lifecycle hooks.
-type TestSuite = {
+pub type TestSuite = {
     name: string,
     tests: List[TestCase],
     setup: Option[fn() -> void],
@@ -62,7 +62,7 @@ type TestSuite = {
 // =============================================================================
 
 /// Configuration options for running tests.
-type RunConfig = {
+pub type RunConfig = {
     fail_fast: bool,
     tags_filter: Option[List[string]]
 }
@@ -72,7 +72,7 @@ type RunConfig = {
 // =============================================================================
 
 /// Summary of running a test suite.
-type TestSummary = {
+pub type TestSummary = {
     suite_name: string,
     total: i32,
     passed: i32,
@@ -81,7 +81,7 @@ type TestSummary = {
 }
 
 /// Summary of running a test suite with timing information.
-type TimedTestSummary = {
+pub type TimedTestSummary = {
     suite_name: string,
     total: i32,
     passed: i32,

@@ -1,0 +1,33 @@
+// Minimal test to debug the undefined variable issue
+
+module examples.minimal_test
+
+import kira_test.types.{AssertionResult, Passed, Failed, TestCase, TestSuite, TestSummary}
+import kira_test.builders.{test, suite}
+import kira_test.runners.{run_suite}
+
+fn add(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+effect fn main() -> void {
+    print("Creating test...")
+
+    let t1: TestCase = test("simple test", fn() -> AssertionResult {
+        let result: i32 = add(2, 3)
+        match result == 5 {
+            true => { return Passed }
+            false => { return Failed("Expected 5") }
+        }
+    })
+
+    print("Creating suite...")
+    let tests: List[TestCase] = std.list.singleton(t1)
+    let s: TestSuite = suite("Minimal Suite", tests)
+
+    print("Running suite...")
+    let summary: TestSummary = run_suite(s)
+
+    print("Done!")
+    return
+}

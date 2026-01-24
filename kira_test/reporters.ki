@@ -45,13 +45,13 @@ fn sum_duration_summaries(acc: i64, s: TimedTestSummary) -> i64 {
 // =============================================================================
 
 /// Print a single test failure.
-effect fn print_failure(f: TestResult) -> void {
+pub effect fn print_failure(f: TestResult) -> void {
     print(str_concat4("  - ", f.name, ": ", f.message))
     return
 }
 
 /// Print a test suite summary.
-effect fn print_summary(summary: TestSummary) -> void {
+pub effect fn print_summary(summary: TestSummary) -> void {
     print("")
     print(std.string.concat("Suite: ", summary.suite_name))
     print("=================")
@@ -74,13 +74,13 @@ effect fn print_summary(summary: TestSummary) -> void {
 // =============================================================================
 
 /// Print a single timed test failure.
-effect fn print_failure_timed(f: TimedTestResult) -> void {
+pub effect fn print_failure_timed(f: TimedTestResult) -> void {
     print(str_concat6("  - ", f.name, " (", std.string.from_i64(f.duration_ms), "ms): ", f.message))
     return
 }
 
 /// Print a timed test suite summary.
-effect fn print_summary_timed(summary: TimedTestSummary) -> void {
+pub effect fn print_summary_timed(summary: TimedTestSummary) -> void {
     print("")
     print(str_concat4("Suite: ", summary.suite_name, " (", std.string.concat(std.string.from_i64(summary.total_duration_ms), "ms)")))
     print("=================")
@@ -103,7 +103,7 @@ effect fn print_summary_timed(summary: TimedTestSummary) -> void {
 // =============================================================================
 
 /// Run all suites and print results. Returns true if all tests passed.
-effect fn run_and_report(suites: List[TestSuite]) -> bool {
+pub effect fn run_and_report(suites: List[TestSuite]) -> bool {
     let summaries: List[TestSummary] = run_all_suites(suites)
     std.list.foreach(summaries, print_summary)
     let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
@@ -111,7 +111,7 @@ effect fn run_and_report(suites: List[TestSuite]) -> bool {
 }
 
 /// Run all suites with config and print results. Returns true if all tests passed.
-effect fn run_and_report_with_config(suites: List[TestSuite], config: RunConfig) -> bool {
+pub effect fn run_and_report_with_config(suites: List[TestSuite], config: RunConfig) -> bool {
     let summaries: List[TestSummary] = run_all_suites_with_config(suites, config)
     std.list.foreach(summaries, print_summary)
     let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
@@ -123,7 +123,7 @@ effect fn run_and_report_with_config(suites: List[TestSuite], config: RunConfig)
 // =============================================================================
 
 /// Run all suites with timing and print results. Returns true if all tests passed.
-effect fn run_and_report_timed(suites: List[TestSuite]) -> IO[bool] {
+pub effect fn run_and_report_timed(suites: List[TestSuite]) -> IO[bool] {
     let summaries: List[TimedTestSummary] = run_all_suites_timed(suites)
     std.list.foreach(summaries, print_summary_timed)
 
@@ -141,29 +141,33 @@ effect fn run_and_report_timed(suites: List[TestSuite]) -> IO[bool] {
 // =============================================================================
 
 /// Run all suites in parallel and print results. Returns true if all tests passed.
-effect fn run_and_report_parallel(suites: List[TestSuite]) -> IO[bool] {
+pub effect fn run_and_report_parallel(suites: List[TestSuite]) -> IO[bool] {
     let summaries: List[TestSummary] = run_all_suites_parallel(suites)
     std.list.foreach(summaries, print_summary)
     let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
     return total_failed == 0
 }
 
-/// Run all suites in parallel with timing and print results. Returns true if all tests passed.
-effect fn run_and_report_parallel_timed(suites: List[TestSuite]) -> IO[bool] {
-    let start: i64 = std.time.now_ms()
+/// Run parallel timed suites recursively (helper).
+fn run_parallel_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
+    match suites {
+        Nil => { return std.list.reverse(acc) }
+        Cons(s, rest) => {
+            let summary: TimedTestSummary = run_suite_parallel_timed(s)
+            return run_parallel_timed_helper(rest, Cons(summary, acc))
+        }
+    }
+}
 
-    var summaries: List[TimedTestSummary] = Nil
-    std.list.foreach(suites, fn(s: TestSuite) -> void {
-        let summary: TimedTestSummary = run_suite_parallel_timed(s)
-        summaries = std.list.append(summaries, std.list.singleton(summary))
-        return
-    })
+/// Run all suites in parallel with timing and print results. Returns true if all tests passed.
+pub effect fn run_and_report_parallel_timed(suites: List[TestSuite]) -> IO[bool] {
+    let start: i64 = std.time.now()
+    let summaries: List[TimedTestSummary] = run_parallel_timed_helper(suites, Nil)
 
     std.list.foreach(summaries, print_summary_timed)
 
-    let end: i64 = std.time.now_ms()
     let total_failed: i32 = std.list.fold(summaries, 0, count_failures_timed)
-    let wall_time: i64 = end - start
+    let wall_time: i64 = std.time.now() - start
 
     print("")
     print(str_concat3("Total wall-clock time: ", std.string.from_i64(wall_time), "ms (parallel execution)"))

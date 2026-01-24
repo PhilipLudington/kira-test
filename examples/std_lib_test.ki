@@ -1,0 +1,18 @@
+// Test standard library functions that are failing
+// These worked before the package system update
+
+module examples.std_lib_test
+
+effect fn main() -> void {
+    print("Testing std.time.now()...")
+    let start: i64 = std.time.now()
+    print(std.string.concat("Time: ", std.string.from_i64(start)))
+
+    print("Testing std.list.parallel_map()...")
+    let nums: List[i32] = std.list.cons(1, std.list.cons(2, std.list.singleton(3)))
+    let doubled: List[i32] = std.list.parallel_map(nums, fn(x: i32) -> i32 { return x * 2 })
+    print(std.string.concat("Length: ", std.string.from_i32(std.list.length(doubled))))
+
+    print("Done!")
+    return
+}

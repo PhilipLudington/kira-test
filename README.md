@@ -13,22 +13,23 @@ A functional testing framework for the Kira programming language.
 
 ## Installation
 
-Add the `kira-test` library to your project:
+Add the `kira_test` package to your project:
 
 ```
 your-project/
-  lib/
-    kira_test/        # Copy from this repository
-      kira_test.ki
-      types.ki
-      assertions.ki
-      tagging.ki
-      builders.ki
-      runners.ki
-      reporters.ki
+  kira_test/          # Copy from this repository
+    kira_test.ki      # Main module (re-exports all public items)
+    types.ki          # Core type definitions
+    assertions.ki     # Assertion functions
+    tagging.ki        # Tag filtering
+    builders.ki       # Test/suite/config builders
+    runners.ki        # Test execution
+    reporters.ki      # Result reporting
   tests/
     test_your_module.ki
 ```
+
+Or import it as a package dependency (when package management is available).
 
 ## Usage
 
@@ -169,6 +170,9 @@ effect fn main() -> void {
 | `assert_some_i32(option)` | Assert Option is Some |
 | `assert_none_i32(option)` | Assert Option is None |
 | `assert_some_eq_i32(expected, option)` | Assert Some contains expected |
+| `assert_some_str(option)` | Assert Option[string] is Some |
+| `assert_none_str(option)` | Assert Option[string] is None |
+| `assert_some_eq_str(expected, option)` | Assert Some contains expected string |
 | `assert_ok_i32(result)` | Assert Result is Ok |
 | `assert_err_i32(result)` | Assert Result is Err |
 | `assert_ok_eq_i32(expected, result)` | Assert Ok contains expected |

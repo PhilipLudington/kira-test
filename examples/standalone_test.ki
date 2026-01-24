@@ -1,0 +1,49 @@
+// Standalone test - no library imports
+
+module examples.standalone_test
+
+type MyResult =
+    | Pass
+    | Fail(string)
+
+type MyTest = {
+    name: string,
+    run: fn() -> MyResult
+}
+
+fn create_test(name: string, run_fn: fn() -> MyResult) -> MyTest {
+    return MyTest { name: name, run: run_fn }
+}
+
+fn run_test(t: MyTest) -> void {
+    print(std.string.concat("Running: ", t.name))
+    let result: MyResult = t.run()
+    match result {
+        Pass => { print("  PASSED") }
+        Fail(msg) => { print(std.string.concat("  FAILED: ", msg)) }
+    }
+    return
+}
+
+fn add(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+effect fn main() -> void {
+    print("=== Standalone Tests ===")
+    print("")
+
+    let t1: MyTest = create_test("add test", fn() -> MyResult {
+        let result: i32 = add(2, 3)
+        match result == 5 {
+            true => { return Pass }
+            false => { return Fail("Expected 5") }
+        }
+    })
+
+    run_test(t1)
+
+    print("")
+    print("Done!")
+    return
+}

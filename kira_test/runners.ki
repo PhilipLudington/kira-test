@@ -1,0 +1,412 @@
+// runners.ki: Test execution functions
+//
+// Pure and effect functions for running tests and suites.
+// Includes timed execution and parallel runners.
+
+module kira_test.runners
+
+import kira_test.types.{AssertionResult, Passed, Failed, TestResult, TimedTestResult, TestCase, TestSuite, RunConfig, TestSummary, TimedTestSummary}
+import kira_test.tagging.{filter_by_tags}
+
+// =============================================================================
+// Single Test Runners
+// =============================================================================
+
+/// Run a single test case and return the result.
+pub fn run_test(tc: TestCase) -> TestResult {
+    let result: AssertionResult = tc.run()
+    match result {
+        Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
+        Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
+    }
+}
+
+/// Run a single test case with optional before/after hooks.
+pub fn run_test_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Option[fn() -> void]) -> TestResult {
+    match before {
+        Some(before_fn) => { before_fn() }
+        None => {}
+    }
+
+    let result: AssertionResult = tc.run()
+
+    match after {
+        Some(after_fn) => { after_fn() }
+        None => {}
+    }
+
+    match result {
+        Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
+        Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
+    }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+fn count_passed(acc: i32, r: TestResult) -> i32 {
+    match r.passed {
+        true => { return acc + 1 }
+        false => { return acc }
+    }
+}
+
+fn is_failed(r: TestResult) -> bool {
+    match r.passed {
+        true => { return false }
+        false => { return true }
+    }
+}
+
+// =============================================================================
+// Suite Runners
+// =============================================================================
+
+/// Run all tests in a suite and return a summary.
+pub fn run_suite(s: TestSuite) -> TestSummary {
+    match s.setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TestResult] = std.list.map(s.tests, fn(tc: TestCase) -> TestResult {
+        return run_test_with_hooks(tc, s.before_each, s.after_each)
+    })
+
+    match s.teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed)
+    let failed: i32 = total - passed
+    let failures: List[TestResult] = std.list.filter(results, is_failed)
+
+    return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
+}
+
+/// Run tests with fail-fast support.
+fn run_tests_fail_fast(tests: List[TestCase], before_each: Option[fn() -> void], after_each: Option[fn() -> void], fail_fast: bool) -> List[TestResult] {
+    // Use map for simple case without fail-fast
+    match fail_fast {
+        false => {
+            return std.list.map(tests, fn(tc: TestCase) -> TestResult {
+                return run_test_with_hooks(tc, before_each, after_each)
+            })
+        }
+        true => {
+            // For fail-fast, we need to build results incrementally
+            // Use cons (prepend) and reverse at the end to avoid mutable capture bug
+            var results_rev: List[TestResult] = Nil
+            var should_continue: bool = true
+
+            std.list.foreach(tests, fn(tc: TestCase) -> void {
+                match should_continue {
+                    true => {
+                        let result: TestResult = run_test_with_hooks(tc, before_each, after_each)
+                        results_rev = Cons(result, results_rev)
+                        match not result.passed {
+                            true => { should_continue = false }
+                            false => {}
+                        }
+                    }
+                    false => {}
+                }
+                return
+            })
+
+            return std.list.reverse(results_rev)
+        }
+    }
+}
+
+/// Run a suite with configuration options.
+pub fn run_suite_with_config(s: TestSuite, config: RunConfig) -> TestSummary {
+    // Extract config fields to avoid field access issues
+    let fail_fast: bool = config.fail_fast
+    let tags_filter: Option[List[string]] = config.tags_filter
+
+    let filtered_tests: List[TestCase] = match tags_filter {
+        Some(tags) => { return filter_by_tags(s.tests, tags) }
+        None => { return s.tests }
+    }
+
+    match s.setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TestResult] = run_tests_fail_fast(filtered_tests, s.before_each, s.after_each, fail_fast)
+
+    match s.teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed)
+    let failed: i32 = total - passed
+    let failures: List[TestResult] = std.list.filter(results, is_failed)
+
+    return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
+}
+
+// =============================================================================
+// Multiple Suite Runners
+// =============================================================================
+
+/// Run all suites and return summaries.
+pub fn run_all_suites(suites: List[TestSuite]) -> List[TestSummary] {
+    return std.list.map(suites, run_suite)
+}
+
+/// Run all suites with configuration, supporting fail-fast across suites.
+pub fn run_all_suites_with_config(suites: List[TestSuite], config: RunConfig) -> List[TestSummary] {
+    // Extract config fields before closure to avoid field access issues
+    let fail_fast: bool = config.fail_fast
+    let tags_filter: Option[List[string]] = config.tags_filter
+
+    // Use map for simple case without fail-fast
+    match fail_fast {
+        false => {
+            return std.list.map(suites, fn(s: TestSuite) -> TestSummary {
+                let inner_config: RunConfig = RunConfig { fail_fast: false, tags_filter: tags_filter }
+                return run_suite_with_config(s, inner_config)
+            })
+        }
+        true => {
+            // For fail-fast, build results with cons and reverse
+            var summaries_rev: List[TestSummary] = Nil
+            var should_continue: bool = true
+
+            std.list.foreach(suites, fn(s: TestSuite) -> void {
+                match should_continue {
+                    true => {
+                        let inner_config: RunConfig = RunConfig { fail_fast: true, tags_filter: tags_filter }
+                        let summary: TestSummary = run_suite_with_config(s, inner_config)
+                        summaries_rev = Cons(summary, summaries_rev)
+                        match summary.failed > 0 {
+                            true => { should_continue = false }
+                            false => {}
+                        }
+                    }
+                    false => {}
+                }
+                return
+            })
+
+            return std.list.reverse(summaries_rev)
+        }
+    }
+}
+
+// =============================================================================
+// Timed Test Runners (Effect functions using std.time.now())
+// =============================================================================
+
+/// Helper for timed results
+fn count_passed_timed(acc: i32, r: TimedTestResult) -> i32 {
+    match r.passed {
+        true => { return acc + 1 }
+        false => { return acc }
+    }
+}
+
+fn is_failed_timed(r: TimedTestResult) -> bool {
+    match r.passed {
+        true => { return false }
+        false => { return true }
+    }
+}
+
+fn sum_duration(acc: i64, r: TimedTestResult) -> i64 {
+    return acc + r.duration_ms
+}
+
+/// Run a single test case with timing.
+pub effect fn run_test_timed(tc: TestCase) -> IO[TimedTestResult] {
+    // Extract fields to avoid field access issues
+    let name: string = tc.name
+    let run_fn: fn() -> AssertionResult = tc.run
+
+    let start: i64 = std.time.now()
+    let result: AssertionResult = run_fn()
+    let duration: i64 = std.time.now() - start
+
+    match result {
+        Passed => { return TimedTestResult { name: name, passed: true, message: "", duration_ms: duration } }
+        Failed(msg) => { return TimedTestResult { name: name, passed: false, message: msg, duration_ms: duration } }
+    }
+}
+
+/// Run a single test case with timing and hooks.
+pub effect fn run_test_timed_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Option[fn() -> void]) -> IO[TimedTestResult] {
+    // Extract fields first
+    let name: string = tc.name
+    let run_fn: fn() -> AssertionResult = tc.run
+
+    match before {
+        Some(before_fn) => { before_fn() }
+        None => {}
+    }
+
+    let start: i64 = std.time.now()
+    let result: AssertionResult = run_fn()
+    let duration: i64 = std.time.now() - start
+
+    match after {
+        Some(after_fn) => { after_fn() }
+        None => {}
+    }
+
+    match result {
+        Passed => { return TimedTestResult { name: name, passed: true, message: "", duration_ms: duration } }
+        Failed(msg) => { return TimedTestResult { name: name, passed: false, message: msg, duration_ms: duration } }
+    }
+}
+
+/// Run all tests in a suite with timing (recursive helper).
+fn run_tests_timed_helper(tests: List[TestCase], acc: List[TimedTestResult]) -> List[TimedTestResult] {
+    match tests {
+        Nil => { return std.list.reverse(acc) }
+        Cons(tc, rest) => {
+            let result: TimedTestResult = run_test_timed(tc)
+            return run_tests_timed_helper(rest, Cons(result, acc))
+        }
+    }
+}
+
+/// Run all tests in a suite with timing.
+pub effect fn run_suite_timed(s: TestSuite) -> IO[TimedTestSummary] {
+    // Extract suite fields first to avoid field access issues
+    let suite_name: string = s.name
+    let tests: List[TestCase] = s.tests
+    let setup: Option[fn() -> void] = s.setup
+    let teardown: Option[fn() -> void] = s.teardown
+
+    match setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    // Use recursive helper to avoid closure capture issues
+    let results: List[TimedTestResult] = run_tests_timed_helper(tests, Nil)
+
+    match teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed_timed)
+    let failed: i32 = total - passed
+    let failures: List[TimedTestResult] = std.list.filter(results, is_failed_timed)
+    let total_duration: i64 = std.list.fold(results, 0, sum_duration)
+
+    return TimedTestSummary { suite_name: suite_name, total: total, passed: passed, failed: failed, failures: failures, total_duration_ms: total_duration }
+}
+
+/// Run all suites with timing (recursive helper).
+fn run_suites_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
+    match suites {
+        Nil => { return std.list.reverse(acc) }
+        Cons(s, rest) => {
+            let summary: TimedTestSummary = run_suite_timed(s)
+            return run_suites_timed_helper(rest, Cons(summary, acc))
+        }
+    }
+}
+
+/// Run all suites with timing.
+pub effect fn run_all_suites_timed(suites: List[TestSuite]) -> IO[List[TimedTestSummary]] {
+    return run_suites_timed_helper(suites, Nil)
+}
+
+// =============================================================================
+// Parallel Test Runners
+// =============================================================================
+
+/// Run a single test (helper for parallel_map).
+fn run_single_test(tc: TestCase) -> TestResult {
+    return run_test(tc)
+}
+
+/// Run all tests in a suite in parallel.
+/// Note: Hooks (before_each/after_each) are not supported in parallel mode
+/// as they may have ordering dependencies or shared state.
+pub effect fn run_suite_parallel(s: TestSuite) -> IO[TestSummary] {
+    // Extract suite fields first
+    let suite_name: string = s.name
+    let tests: List[TestCase] = s.tests
+    let setup: Option[fn() -> void] = s.setup
+    let teardown: Option[fn() -> void] = s.teardown
+
+    match setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TestResult] = std.list.parallel_map(tests, run_single_test)
+
+    match teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed)
+    let failed: i32 = total - passed
+    let failures: List[TestResult] = std.list.filter(results, is_failed)
+
+    return TestSummary { suite_name: suite_name, total: total, passed: passed, failed: failed, failures: failures }
+}
+
+/// Run suites in parallel recursively (helper).
+fn run_suites_parallel_helper(suites: List[TestSuite], acc: List[TestSummary]) -> List[TestSummary] {
+    match suites {
+        Nil => { return std.list.reverse(acc) }
+        Cons(s, rest) => {
+            let summary: TestSummary = run_suite_parallel(s)
+            return run_suites_parallel_helper(rest, Cons(summary, acc))
+        }
+    }
+}
+
+/// Run all suites in parallel.
+pub effect fn run_all_suites_parallel(suites: List[TestSuite]) -> IO[List[TestSummary]] {
+    return run_suites_parallel_helper(suites, Nil)
+}
+
+/// Run all tests in a suite with timing.
+/// Note: Runs sequentially since timed tests are effect functions.
+pub effect fn run_suite_parallel_timed(s: TestSuite) -> IO[TimedTestSummary] {
+    // Extract suite fields first
+    let suite_name: string = s.name
+    let tests: List[TestCase] = s.tests
+    let setup: Option[fn() -> void] = s.setup
+    let teardown: Option[fn() -> void] = s.teardown
+
+    let start: i64 = std.time.now()
+
+    match setup {
+        Some(setup_fn) => { setup_fn() }
+        None => {}
+    }
+
+    let results: List[TimedTestResult] = run_tests_timed_helper(tests, Nil)
+
+    match teardown {
+        Some(teardown_fn) => { teardown_fn() }
+        None => {}
+    }
+
+    let total: i32 = std.list.length(results)
+    let passed: i32 = std.list.fold(results, 0, count_passed_timed)
+    let failed: i32 = total - passed
+    let failures: List[TimedTestResult] = std.list.filter(results, is_failed_timed)
+    let total_duration: i64 = std.time.now() - start
+
+    return TimedTestSummary { suite_name: suite_name, total: total, passed: passed, failed: failed, failures: failures, total_duration_ms: total_duration }
+}
