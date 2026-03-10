@@ -16,10 +16,8 @@ module kira_test
 // Re-export Types
 // =============================================================================
 
-import kira_test.types.{
+import types.{
     AssertionResult,
-    Passed,
-    Failed,
     TestResult,
     TimedTestResult,
     TestCase,
@@ -33,7 +31,7 @@ import kira_test.types.{
 // Re-export Assertions
 // =============================================================================
 
-import kira_test.assertions.{
+import assertions.{
     // Boolean
     assert_true,
     assert_false,
@@ -136,7 +134,7 @@ import kira_test.assertions.{
 // Re-export Tagging
 // =============================================================================
 
-import kira_test.tagging.{
+import tagging.{
     has_tag,
     has_any_tag,
     filter_by_tags
@@ -146,9 +144,9 @@ import kira_test.tagging.{
 // Re-export Builders
 // =============================================================================
 
-import kira_test.builders.{
+import builders.{
     // Test case builders
-    test,
+    make_test,
     test_tagged,
     // Suite builders
     suite,
@@ -167,7 +165,7 @@ import kira_test.builders.{
 // Re-export Runners
 // =============================================================================
 
-import kira_test.runners.{
+import runners.{
     // Standard runners
     run_test,
     run_test_with_hooks,
@@ -190,7 +188,7 @@ import kira_test.runners.{
 // Re-export Reporters
 // =============================================================================
 
-import kira_test.reporters.{
+import reporters.{
     // Standard reporting
     print_failure,
     print_summary,

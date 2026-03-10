@@ -4,7 +4,7 @@
 
 module kira_test.assertions
 
-import kira_test.types.{AssertionResult, Passed, Failed}
+import types.{AssertionResult}
 
 // =============================================================================
 // Helper functions
@@ -91,13 +91,15 @@ pub fn assert_eq_bool(expected: bool, actual: bool) -> AssertionResult {
     match expected == actual {
         true => { return Passed }
         false => {
-            let exp_str: string = match expected {
-                true => { return "true" }
-                false => { return "false" }
+            var exp_str: string = "false"
+            match expected {
+                true => { exp_str = "true" }
+                false => {}
             }
-            let act_str: string = match actual {
-                true => { return "true" }
-                false => { return "false" }
+            var act_str: string = "false"
+            match actual {
+                true => { act_str = "true" }
+                false => {}
             }
             return Failed(str_concat4("Expected ", exp_str, ", got ", act_str))
         }
@@ -119,9 +121,10 @@ pub fn assert_eq_f64(expected: f64, actual: f64) -> AssertionResult {
 /// Assert that two f64 values are approximately equal within epsilon.
 pub fn assert_approx_eq(expected: f64, actual: f64, epsilon: f64) -> AssertionResult {
     let diff: f64 = expected - actual
-    let abs_diff: f64 = match diff < 0.0 {
-        true => { return 0.0 - diff }
-        false => { return diff }
+    var abs_diff: f64 = 0.0
+    match diff < 0.0 {
+        true => { abs_diff = 0.0 - diff }
+        false => { abs_diff = diff }
     }
     match abs_diff <= epsilon {
         true => { return Passed }
@@ -851,9 +854,10 @@ pub fn assert_some_approx_eq_f64(expected: f64, opt: Option[f64], epsilon: f64) 
     match opt {
         Some(v) => {
             let diff: f64 = expected - v
-            let abs_diff: f64 = match diff < 0.0 {
-                true => { return 0.0 - diff }
-                false => { return diff }
+            var abs_diff: f64 = 0.0
+            match diff < 0.0 {
+                true => { abs_diff = 0.0 - diff }
+                false => { abs_diff = diff }
             }
             match abs_diff <= epsilon {
                 true => { return Passed }

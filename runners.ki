@@ -5,8 +5,8 @@
 
 module kira_test.runners
 
-import kira_test.types.{AssertionResult, Passed, Failed, TestResult, TimedTestResult, TestCase, TestSuite, RunConfig, TestSummary, TimedTestSummary}
-import kira_test.tagging.{filter_by_tags}
+import types.{AssertionResult, TestResult, TimedTestResult, TestCase, TestSuite, RunConfig, TestSummary, TimedTestSummary}
+import tagging.{filter_by_tags}
 
 // =============================================================================
 // Single Test Runners
@@ -14,7 +14,8 @@ import kira_test.tagging.{filter_by_tags}
 
 /// Run a single test case and return the result.
 pub fn run_test(tc: TestCase) -> TestResult {
-    let result: AssertionResult = tc.run()
+    let run_fn: fn() -> AssertionResult = tc.run
+    let result: AssertionResult = run_fn()
     match result {
         Passed => { return TestResult { name: tc.name, passed: true, message: "" } }
         Failed(msg) => { return TestResult { name: tc.name, passed: false, message: msg } }
@@ -28,7 +29,8 @@ pub fn run_test_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Op
         None => {}
     }
 
-    let result: AssertionResult = tc.run()
+    let run_fn: fn() -> AssertionResult = tc.run
+    let result: AssertionResult = run_fn()
 
     match after {
         Some(after_fn) => { after_fn() }
@@ -128,9 +130,10 @@ pub fn run_suite_with_config(s: TestSuite, config: RunConfig) -> TestSummary {
     let fail_fast: bool = config.fail_fast
     let tags_filter: Option[List[string]] = config.tags_filter
 
-    let filtered_tests: List[TestCase] = match tags_filter {
-        Some(tags) => { return filter_by_tags(s.tests, tags) }
-        None => { return s.tests }
+    var filtered_tests: List[TestCase] = s.tests
+    match tags_filter {
+        Some(tags) => { filtered_tests = filter_by_tags(s.tests, tags) }
+        None => {}
     }
 
     match s.setup {
@@ -226,7 +229,7 @@ fn sum_duration(acc: i64, r: TimedTestResult) -> i64 {
 }
 
 /// Run a single test case with timing.
-pub effect fn run_test_timed(tc: TestCase) -> IO[TimedTestResult] {
+pub effect fn run_test_timed(tc: TestCase) -> TimedTestResult {
     // Extract fields to avoid field access issues
     let name: string = tc.name
     let run_fn: fn() -> AssertionResult = tc.run
@@ -242,7 +245,7 @@ pub effect fn run_test_timed(tc: TestCase) -> IO[TimedTestResult] {
 }
 
 /// Run a single test case with timing and hooks.
-pub effect fn run_test_timed_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Option[fn() -> void]) -> IO[TimedTestResult] {
+pub effect fn run_test_timed_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Option[fn() -> void]) -> TimedTestResult {
     // Extract fields first
     let name: string = tc.name
     let run_fn: fn() -> AssertionResult = tc.run
@@ -268,7 +271,7 @@ pub effect fn run_test_timed_with_hooks(tc: TestCase, before: Option[fn() -> voi
 }
 
 /// Run all tests in a suite with timing (recursive helper).
-fn run_tests_timed_helper(tests: List[TestCase], acc: List[TimedTestResult]) -> List[TimedTestResult] {
+effect fn run_tests_timed_helper(tests: List[TestCase], acc: List[TimedTestResult]) -> List[TimedTestResult] {
     match tests {
         Nil => { return std.list.reverse(acc) }
         Cons(tc, rest) => {
@@ -279,7 +282,7 @@ fn run_tests_timed_helper(tests: List[TestCase], acc: List[TimedTestResult]) -> 
 }
 
 /// Run all tests in a suite with timing.
-pub effect fn run_suite_timed(s: TestSuite) -> IO[TimedTestSummary] {
+pub effect fn run_suite_timed(s: TestSuite) -> TimedTestSummary {
     // Extract suite fields first to avoid field access issues
     let suite_name: string = s.name
     let tests: List[TestCase] = s.tests
@@ -309,7 +312,7 @@ pub effect fn run_suite_timed(s: TestSuite) -> IO[TimedTestSummary] {
 }
 
 /// Run all suites with timing (recursive helper).
-fn run_suites_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
+effect fn run_suites_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
     match suites {
         Nil => { return std.list.reverse(acc) }
         Cons(s, rest) => {
@@ -320,7 +323,7 @@ fn run_suites_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary])
 }
 
 /// Run all suites with timing.
-pub effect fn run_all_suites_timed(suites: List[TestSuite]) -> IO[List[TimedTestSummary]] {
+pub effect fn run_all_suites_timed(suites: List[TestSuite]) -> List[TimedTestSummary] {
     return run_suites_timed_helper(suites, Nil)
 }
 
@@ -336,7 +339,7 @@ fn run_single_test(tc: TestCase) -> TestResult {
 /// Run all tests in a suite in parallel.
 /// Note: Hooks (before_each/after_each) are not supported in parallel mode
 /// as they may have ordering dependencies or shared state.
-pub effect fn run_suite_parallel(s: TestSuite) -> IO[TestSummary] {
+pub effect fn run_suite_parallel(s: TestSuite) -> TestSummary {
     // Extract suite fields first
     let suite_name: string = s.name
     let tests: List[TestCase] = s.tests
@@ -364,7 +367,7 @@ pub effect fn run_suite_parallel(s: TestSuite) -> IO[TestSummary] {
 }
 
 /// Run suites in parallel recursively (helper).
-fn run_suites_parallel_helper(suites: List[TestSuite], acc: List[TestSummary]) -> List[TestSummary] {
+effect fn run_suites_parallel_helper(suites: List[TestSuite], acc: List[TestSummary]) -> List[TestSummary] {
     match suites {
         Nil => { return std.list.reverse(acc) }
         Cons(s, rest) => {
@@ -375,13 +378,13 @@ fn run_suites_parallel_helper(suites: List[TestSuite], acc: List[TestSummary]) -
 }
 
 /// Run all suites in parallel.
-pub effect fn run_all_suites_parallel(suites: List[TestSuite]) -> IO[List[TestSummary]] {
+pub effect fn run_all_suites_parallel(suites: List[TestSuite]) -> List[TestSummary] {
     return run_suites_parallel_helper(suites, Nil)
 }
 
 /// Run all tests in a suite with timing.
 /// Note: Runs sequentially since timed tests are effect functions.
-pub effect fn run_suite_parallel_timed(s: TestSuite) -> IO[TimedTestSummary] {
+pub effect fn run_suite_parallel_timed(s: TestSuite) -> TimedTestSummary {
     // Extract suite fields first
     let suite_name: string = s.name
     let tests: List[TestCase] = s.tests

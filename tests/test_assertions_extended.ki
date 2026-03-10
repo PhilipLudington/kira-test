@@ -2,10 +2,8 @@
 
 module test_assertions_extended
 
-import kira_test.{
-    test,
-    suite,
-    run_and_report,
+import types.{AssertionResult, TestCase, TestSuite}
+import assertions.{
     // Comparison assertions
     assert_greater_or_eq_i32,
     assert_less_or_eq_i32,
@@ -59,17 +57,10 @@ import kira_test.{
     // List string basic
     assert_empty_str_list,
     assert_not_empty_str_list,
-    assert_length_str_list,
-    // Types
-    AssertionResult,
-    Passed,
-    Failed,
-    TestSuite,
-    TestCase
+    assert_length_str_list
 }
-import std.option.{ Option, Some, None }
-import std.result.{ Result, Ok, Err }
-import std.list.{ List, Cons, Nil }
+import builders.{make_test, suite}
+import reporters.{run_and_report}
 
 // =============================================================================
 // Comparison Assertions - i32 Extended
@@ -439,95 +430,72 @@ let test_length_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResu
 }
 
 // =============================================================================
-// Test Suite
+// Test Suite Builder
 // =============================================================================
 
-let extended_assertion_tests: TestSuite = suite("Extended Assertion Tests", [
-    // Comparison i32 extended
-    test("assert_greater_or_eq_i32 passes on greater", test_greater_or_eq_i32_passes_greater),
-    test("assert_greater_or_eq_i32 passes on equal", test_greater_or_eq_i32_passes_equal),
-    test("assert_greater_or_eq_i32 fails correctly", test_greater_or_eq_i32_fails),
-    test("assert_less_or_eq_i32 passes on less", test_less_or_eq_i32_passes_less),
-    test("assert_less_or_eq_i32 passes on equal", test_less_or_eq_i32_passes_equal),
+fn build_extended_tests() -> List[TestCase] {
+    return Cons(make_test("assert_greater_or_eq_i32 passes on greater", test_greater_or_eq_i32_passes_greater),
+        Cons(make_test("assert_greater_or_eq_i32 passes on equal", test_greater_or_eq_i32_passes_equal),
+        Cons(make_test("assert_greater_or_eq_i32 fails correctly", test_greater_or_eq_i32_fails),
+        Cons(make_test("assert_less_or_eq_i32 passes on less", test_less_or_eq_i32_passes_less),
+        Cons(make_test("assert_less_or_eq_i32 passes on equal", test_less_or_eq_i32_passes_equal),
+        Cons(make_test("assert_greater_f64 passes", test_greater_f64_passes),
+        Cons(make_test("assert_less_f64 passes", test_less_f64_passes),
+        Cons(make_test("assert_greater_or_eq_f64 passes", test_greater_or_eq_f64_passes),
+        Cons(make_test("assert_less_or_eq_f64 passes", test_less_or_eq_f64_passes),
+        Cons(make_test("assert_eq_i64 passes", test_eq_i64_passes),
+        Cons(make_test("assert_not_eq_i64 passes", test_not_eq_i64_passes),
+        Cons(make_test("assert_greater_i64 passes", test_greater_i64_passes),
+        Cons(make_test("assert_less_i64 passes", test_less_i64_passes),
+        Cons(make_test("assert_greater_or_eq_i64 passes", test_greater_or_eq_i64_passes),
+        Cons(make_test("assert_greater_or_eq_i64 passes on equal", test_greater_or_eq_i64_passes_equal),
+        Cons(make_test("assert_less_or_eq_i64 passes", test_less_or_eq_i64_passes),
+        Cons(make_test("assert_less_or_eq_i64 passes on equal", test_less_or_eq_i64_passes_equal),
+        Cons(make_test("assert_in_range_i64 passes", test_in_range_i64_passes),
+        Cons(make_test("assert_ok_str passes", test_ok_str_passes),
+        Cons(make_test("assert_ok_eq_str passes", test_ok_eq_str_passes),
+        Cons(make_test("assert_ok_eq_str fails on wrong value", test_ok_eq_str_fails_wrong_value),
+        Cons(make_test("assert_contains_i32 passes", test_contains_i32_passes),
+        Cons(make_test("assert_contains_i32 fails correctly", test_contains_i32_fails),
+        Cons(make_test("assert_not_contains_i32 passes", test_not_contains_i32_passes),
+        Cons(make_test("assert_contains_str_list passes", test_contains_str_list_passes),
+        Cons(make_test("assert_not_contains_str_list passes", test_not_contains_str_list_passes),
+        Cons(make_test("assert_not_contains_str_list fails correctly", test_not_contains_str_list_fails),
+        Cons(make_test("assert_eq_list_i32 passes on equal lists", test_eq_list_i32_passes),
+        Cons(make_test("assert_eq_list_i32 fails on different lists", test_eq_list_i32_fails_different),
+        Cons(make_test("assert_eq_list_str passes on equal lists", test_eq_list_str_passes),
+        Cons(make_test("assert_empty_string passes on empty", test_empty_string_passes),
+        Cons(make_test("assert_empty_string fails on non-empty", test_empty_string_fails),
+        Cons(make_test("assert_not_empty_string passes", test_not_empty_string_passes),
+        Cons(make_test("assert_str_length passes", test_str_length_passes),
+        Cons(make_test("assert_not_contains passes", test_not_contains_passes),
+        Cons(make_test("assert_not_contains fails correctly", test_not_contains_fails),
+        Cons(make_test("assert_not_starts_with passes", test_not_starts_with_passes),
+        Cons(make_test("assert_not_ends_with passes", test_not_ends_with_passes),
+        Cons(make_test("assert_all_i32 passes when all match", test_all_i32_passes),
+        Cons(make_test("assert_all_i32 fails when one doesn't match", test_all_i32_fails),
+        Cons(make_test("assert_any_i32 passes when one matches", test_any_i32_passes),
+        Cons(make_test("assert_any_i32 fails when none match", test_any_i32_fails),
+        Cons(make_test("assert_all_str passes", test_all_str_passes),
+        Cons(make_test("assert_any_str passes", test_any_str_passes),
+        Cons(make_test("assert_one_of_i32 passes", test_one_of_i32_passes),
+        Cons(make_test("assert_one_of_i32 fails correctly", test_one_of_i32_fails),
+        Cons(make_test("assert_one_of_str passes", test_one_of_str_passes),
+        Cons(make_test("assert_satisfies_i32 passes", test_satisfies_i32_passes),
+        Cons(make_test("assert_satisfies_i32 fails correctly", test_satisfies_i32_fails),
+        Cons(make_test("assert_satisfies_str passes", test_satisfies_str_passes),
+        Cons(make_test("assert_some_f64 passes", test_some_f64_passes),
+        Cons(make_test("assert_none_f64 passes", test_none_f64_passes),
+        Cons(make_test("assert_some_eq_f64 passes", test_some_eq_f64_passes),
+        Cons(make_test("assert_some_approx_eq_f64 passes", test_some_approx_eq_f64_passes),
+        Cons(make_test("assert_empty_str_list passes", test_empty_str_list_passes),
+        Cons(make_test("assert_not_empty_str_list passes", test_not_empty_str_list_passes),
+        Cons(make_test("assert_length_str_list passes", test_length_str_list_passes),
+        Nil)))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+}
 
-    // Comparison f64
-    test("assert_greater_f64 passes", test_greater_f64_passes),
-    test("assert_less_f64 passes", test_less_f64_passes),
-    test("assert_greater_or_eq_f64 passes", test_greater_or_eq_f64_passes),
-    test("assert_less_or_eq_f64 passes", test_less_or_eq_f64_passes),
-
-    // i64
-    test("assert_eq_i64 passes", test_eq_i64_passes),
-    test("assert_not_eq_i64 passes", test_not_eq_i64_passes),
-    test("assert_greater_i64 passes", test_greater_i64_passes),
-    test("assert_less_i64 passes", test_less_i64_passes),
-    test("assert_greater_or_eq_i64 passes", test_greater_or_eq_i64_passes),
-    test("assert_greater_or_eq_i64 passes on equal", test_greater_or_eq_i64_passes_equal),
-    test("assert_less_or_eq_i64 passes", test_less_or_eq_i64_passes),
-    test("assert_less_or_eq_i64 passes on equal", test_less_or_eq_i64_passes_equal),
-    test("assert_in_range_i64 passes", test_in_range_i64_passes),
-
-    // Result string
-    test("assert_ok_str passes", test_ok_str_passes),
-    test("assert_ok_eq_str passes", test_ok_eq_str_passes),
-    test("assert_ok_eq_str fails on wrong value", test_ok_eq_str_fails_wrong_value),
-
-    // List membership
-    test("assert_contains_i32 passes", test_contains_i32_passes),
-    test("assert_contains_i32 fails correctly", test_contains_i32_fails),
-    test("assert_not_contains_i32 passes", test_not_contains_i32_passes),
-    test("assert_contains_str_list passes", test_contains_str_list_passes),
-    test("assert_not_contains_str_list passes", test_not_contains_str_list_passes),
-    test("assert_not_contains_str_list fails correctly", test_not_contains_str_list_fails),
-
-    // List equality
-    test("assert_eq_list_i32 passes on equal lists", test_eq_list_i32_passes),
-    test("assert_eq_list_i32 fails on different lists", test_eq_list_i32_fails_different),
-    test("assert_eq_list_str passes on equal lists", test_eq_list_str_passes),
-
-    // String value
-    test("assert_empty_string passes on empty", test_empty_string_passes),
-    test("assert_empty_string fails on non-empty", test_empty_string_fails),
-    test("assert_not_empty_string passes", test_not_empty_string_passes),
-    test("assert_str_length passes", test_str_length_passes),
-
-    // String negation
-    test("assert_not_contains passes", test_not_contains_passes),
-    test("assert_not_contains fails correctly", test_not_contains_fails),
-    test("assert_not_starts_with passes", test_not_starts_with_passes),
-    test("assert_not_ends_with passes", test_not_ends_with_passes),
-
-    // Predicate assertions
-    test("assert_all_i32 passes when all match", test_all_i32_passes),
-    test("assert_all_i32 fails when one doesn't match", test_all_i32_fails),
-    test("assert_any_i32 passes when one matches", test_any_i32_passes),
-    test("assert_any_i32 fails when none match", test_any_i32_fails),
-    test("assert_all_str passes", test_all_str_passes),
-    test("assert_any_str passes", test_any_str_passes),
-
-    // One-of
-    test("assert_one_of_i32 passes", test_one_of_i32_passes),
-    test("assert_one_of_i32 fails correctly", test_one_of_i32_fails),
-    test("assert_one_of_str passes", test_one_of_str_passes),
-
-    // Custom predicate
-    test("assert_satisfies_i32 passes", test_satisfies_i32_passes),
-    test("assert_satisfies_i32 fails correctly", test_satisfies_i32_fails),
-    test("assert_satisfies_str passes", test_satisfies_str_passes),
-
-    // Option f64
-    test("assert_some_f64 passes", test_some_f64_passes),
-    test("assert_none_f64 passes", test_none_f64_passes),
-    test("assert_some_eq_f64 passes", test_some_eq_f64_passes),
-    test("assert_some_approx_eq_f64 passes", test_some_approx_eq_f64_passes),
-
-    // List string basic
-    test("assert_empty_str_list passes", test_empty_str_list_passes),
-    test("assert_not_empty_str_list passes", test_not_empty_str_list_passes),
-    test("assert_length_str_list passes", test_length_str_list_passes)
-])
-
-effect fn main() -> IO[void] {
-    run_and_report(extended_assertion_tests)
+effect fn main() -> void {
+    let extended_tests: TestSuite = suite("Extended Assertion Tests", build_extended_tests())
+    run_and_report(Cons(extended_tests, Nil))
     return
 }

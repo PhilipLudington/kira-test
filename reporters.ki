@@ -5,8 +5,8 @@
 
 module kira_test.reporters
 
-import kira_test.types.{TestResult, TimedTestResult, TestSuite, RunConfig, TestSummary, TimedTestSummary}
-import kira_test.runners.{run_all_suites, run_all_suites_with_config, run_all_suites_timed, run_suite_parallel, run_all_suites_parallel, run_suite_parallel_timed}
+import types.{TestResult, TimedTestResult, TestSuite, RunConfig, TestSummary, TimedTestSummary}
+import runners.{run_all_suites, run_all_suites_with_config, run_all_suites_timed, run_suite_parallel, run_all_suites_parallel, run_suite_parallel_timed}
 
 // =============================================================================
 // Helper Functions
@@ -123,7 +123,7 @@ pub effect fn run_and_report_with_config(suites: List[TestSuite], config: RunCon
 // =============================================================================
 
 /// Run all suites with timing and print results. Returns true if all tests passed.
-pub effect fn run_and_report_timed(suites: List[TestSuite]) -> IO[bool] {
+pub effect fn run_and_report_timed(suites: List[TestSuite]) -> bool {
     let summaries: List[TimedTestSummary] = run_all_suites_timed(suites)
     std.list.foreach(summaries, print_summary_timed)
 
@@ -141,7 +141,7 @@ pub effect fn run_and_report_timed(suites: List[TestSuite]) -> IO[bool] {
 // =============================================================================
 
 /// Run all suites in parallel and print results. Returns true if all tests passed.
-pub effect fn run_and_report_parallel(suites: List[TestSuite]) -> IO[bool] {
+pub effect fn run_and_report_parallel(suites: List[TestSuite]) -> bool {
     let summaries: List[TestSummary] = run_all_suites_parallel(suites)
     std.list.foreach(summaries, print_summary)
     let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
@@ -149,7 +149,7 @@ pub effect fn run_and_report_parallel(suites: List[TestSuite]) -> IO[bool] {
 }
 
 /// Run parallel timed suites recursively (helper).
-fn run_parallel_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
+effect fn run_parallel_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary]) -> List[TimedTestSummary] {
     match suites {
         Nil => { return std.list.reverse(acc) }
         Cons(s, rest) => {
@@ -160,7 +160,7 @@ fn run_parallel_timed_helper(suites: List[TestSuite], acc: List[TimedTestSummary
 }
 
 /// Run all suites in parallel with timing and print results. Returns true if all tests passed.
-pub effect fn run_and_report_parallel_timed(suites: List[TestSuite]) -> IO[bool] {
+pub effect fn run_and_report_parallel_timed(suites: List[TestSuite]) -> bool {
     let start: i64 = std.time.now()
     let summaries: List[TimedTestSummary] = run_parallel_timed_helper(suites, Nil)
 

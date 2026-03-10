@@ -15,9 +15,10 @@ fn create_test(name: string, run_fn: fn() -> MyResult) -> MyTest {
     return MyTest { name: name, run: run_fn }
 }
 
-fn run_test(t: MyTest) -> void {
+effect fn run_test(t: MyTest) -> void {
     print(std.string.concat("Running: ", t.name))
-    let result: MyResult = t.run()
+    let run_fn: fn() -> MyResult = t.run
+    let result: MyResult = run_fn()
     match result {
         Pass => { print("  PASSED") }
         Fail(msg) => { print(std.string.concat("  FAILED: ", msg)) }

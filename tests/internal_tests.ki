@@ -3,7 +3,7 @@
 
 module tests.internal_tests
 
-import types.{AssertionResult, Passed, Failed, TestCase, TestSuite, TestSummary}
+import types.{AssertionResult, TestCase, TestSuite, TestSummary}
 import assertions.{
     // Boolean
     assert_true,
@@ -90,7 +90,7 @@ import assertions.{
     assert_satisfies_i32,
     assert_satisfies_str
 }
-import builders.{test, suite}
+import builders.{make_test, suite}
 import runners.{run_suite}
 
 // =============================================================================
@@ -115,9 +115,9 @@ let is_non_empty: fn(string) -> bool = fn(s: string) -> bool {
 
 let boolean_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_true passes", fn() -> AssertionResult { return assert_true(true) }),
+        make_test("assert_true passes", fn() -> AssertionResult { return assert_true(true) }),
         Cons(
-            test("assert_false passes", fn() -> AssertionResult { return assert_false(false) }),
+            make_test("assert_false passes", fn() -> AssertionResult { return assert_false(false) }),
             Nil
         )
     )
@@ -129,19 +129,19 @@ let boolean_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let equality_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_eq_i32 passes", fn() -> AssertionResult { return assert_eq_i32(42, 42) }),
+        make_test("assert_eq_i32 passes", fn() -> AssertionResult { return assert_eq_i32(42, 42) }),
         Cons(
-            test("assert_not_eq_i32 passes", fn() -> AssertionResult { return assert_not_eq_i32(1, 2) }),
+            make_test("assert_not_eq_i32 passes", fn() -> AssertionResult { return assert_not_eq_i32(1, 2) }),
             Cons(
-                test("assert_eq_i64 passes", fn() -> AssertionResult { return assert_eq_i64(100, 100) }),
+                make_test("assert_eq_i64 passes", fn() -> AssertionResult { return assert_eq_i64(100, 100) }),
                 Cons(
-                    test("assert_eq_str passes", fn() -> AssertionResult { return assert_eq_str("hello", "hello") }),
+                    make_test("assert_eq_str passes", fn() -> AssertionResult { return assert_eq_str("hello", "hello") }),
                     Cons(
-                        test("assert_eq_bool passes", fn() -> AssertionResult { return assert_eq_bool(true, true) }),
+                        make_test("assert_eq_bool passes", fn() -> AssertionResult { return assert_eq_bool(true, true) }),
                         Cons(
-                            test("assert_eq_f64 passes", fn() -> AssertionResult { return assert_eq_f64(3.14, 3.14) }),
+                            make_test("assert_eq_f64 passes", fn() -> AssertionResult { return assert_eq_f64(3.14, 3.14) }),
                             Cons(
-                                test("assert_approx_eq passes", fn() -> AssertionResult { return assert_approx_eq(3.14, 3.141, 0.01) }),
+                                make_test("assert_approx_eq passes", fn() -> AssertionResult { return assert_approx_eq(3.14, 3.141, 0.01) }),
                                 Nil
                             )
                         )
@@ -158,21 +158,21 @@ let equality_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let comparison_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_greater_i32 passes", fn() -> AssertionResult { return assert_greater_i32(5, 10) }),
+        make_test("assert_greater_i32 passes", fn() -> AssertionResult { return assert_greater_i32(5, 10) }),
         Cons(
-            test("assert_less_i32 passes", fn() -> AssertionResult { return assert_less_i32(10, 5) }),
+            make_test("assert_less_i32 passes", fn() -> AssertionResult { return assert_less_i32(10, 5) }),
             Cons(
-                test("assert_greater_or_eq_i32 passes", fn() -> AssertionResult { return assert_greater_or_eq_i32(5, 5) }),
+                make_test("assert_greater_or_eq_i32 passes", fn() -> AssertionResult { return assert_greater_or_eq_i32(5, 5) }),
                 Cons(
-                    test("assert_less_or_eq_i32 passes", fn() -> AssertionResult { return assert_less_or_eq_i32(5, 5) }),
+                    make_test("assert_less_or_eq_i32 passes", fn() -> AssertionResult { return assert_less_or_eq_i32(5, 5) }),
                     Cons(
-                        test("assert_greater_i64 passes", fn() -> AssertionResult { return assert_greater_i64(50, 100) }),
+                        make_test("assert_greater_i64 passes", fn() -> AssertionResult { return assert_greater_i64(50, 100) }),
                         Cons(
-                            test("assert_greater_f64 passes", fn() -> AssertionResult { return assert_greater_f64(1.0, 2.0) }),
+                            make_test("assert_greater_f64 passes", fn() -> AssertionResult { return assert_greater_f64(1.0, 2.0) }),
                             Cons(
-                                test("assert_in_range_i32 passes", fn() -> AssertionResult { return assert_in_range_i32(0, 10, 5) }),
+                                make_test("assert_in_range_i32 passes", fn() -> AssertionResult { return assert_in_range_i32(0, 10, 5) }),
                                 Cons(
-                                    test("assert_in_range_i64 passes", fn() -> AssertionResult { return assert_in_range_i64(0, 100, 50) }),
+                                    make_test("assert_in_range_i64 passes", fn() -> AssertionResult { return assert_in_range_i64(0, 100, 50) }),
                                     Nil
                                 )
                             )
@@ -190,19 +190,19 @@ let comparison_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let option_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_some_i32 passes", fn() -> AssertionResult { return assert_some_i32(Some(42)) }),
+        make_test("assert_some_i32 passes", fn() -> AssertionResult { return assert_some_i32(Some(42)) }),
         Cons(
-            test("assert_none_i32 passes", fn() -> AssertionResult { return assert_none_i32(None) }),
+            make_test("assert_none_i32 passes", fn() -> AssertionResult { return assert_none_i32(None) }),
             Cons(
-                test("assert_some_eq_i32 passes", fn() -> AssertionResult { return assert_some_eq_i32(42, Some(42)) }),
+                make_test("assert_some_eq_i32 passes", fn() -> AssertionResult { return assert_some_eq_i32(42, Some(42)) }),
                 Cons(
-                    test("assert_some_str passes", fn() -> AssertionResult { return assert_some_str(Some("hello")) }),
+                    make_test("assert_some_str passes", fn() -> AssertionResult { return assert_some_str(Some("hello")) }),
                     Cons(
-                        test("assert_none_str passes", fn() -> AssertionResult { return assert_none_str(None) }),
+                        make_test("assert_none_str passes", fn() -> AssertionResult { return assert_none_str(None) }),
                         Cons(
-                            test("assert_some_f64 passes", fn() -> AssertionResult { return assert_some_f64(Some(3.14)) }),
+                            make_test("assert_some_f64 passes", fn() -> AssertionResult { return assert_some_f64(Some(3.14)) }),
                             Cons(
-                                test("assert_none_f64 passes", fn() -> AssertionResult { return assert_none_f64(None) }),
+                                make_test("assert_none_f64 passes", fn() -> AssertionResult { return assert_none_f64(None) }),
                                 Nil
                             )
                         )
@@ -219,15 +219,15 @@ let option_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let result_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_ok_i32 passes", fn() -> AssertionResult { return assert_ok_i32(Ok(42)) }),
+        make_test("assert_ok_i32 passes", fn() -> AssertionResult { return assert_ok_i32(Ok(42)) }),
         Cons(
-            test("assert_err_i32 passes", fn() -> AssertionResult { return assert_err_i32(Err("error")) }),
+            make_test("assert_err_i32 passes", fn() -> AssertionResult { return assert_err_i32(Err("error")) }),
             Cons(
-                test("assert_ok_eq_i32 passes", fn() -> AssertionResult { return assert_ok_eq_i32(42, Ok(42)) }),
+                make_test("assert_ok_eq_i32 passes", fn() -> AssertionResult { return assert_ok_eq_i32(42, Ok(42)) }),
                 Cons(
-                    test("assert_ok_str passes", fn() -> AssertionResult { return assert_ok_str(Ok("success")) }),
+                    make_test("assert_ok_str passes", fn() -> AssertionResult { return assert_ok_str(Ok("success")) }),
                     Cons(
-                        test("assert_ok_eq_str passes", fn() -> AssertionResult { return assert_ok_eq_str("hello", Ok("hello")) }),
+                        make_test("assert_ok_eq_str passes", fn() -> AssertionResult { return assert_ok_eq_str("hello", Ok("hello")) }),
                         Nil
                     )
                 )
@@ -242,23 +242,23 @@ let result_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let string_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_contains passes", fn() -> AssertionResult { return assert_contains("hello world", "world") }),
+        make_test("assert_contains passes", fn() -> AssertionResult { return assert_contains("hello world", "world") }),
         Cons(
-            test("assert_starts_with passes", fn() -> AssertionResult { return assert_starts_with("hello", "hel") }),
+            make_test("assert_starts_with passes", fn() -> AssertionResult { return assert_starts_with("hello", "hel") }),
             Cons(
-                test("assert_ends_with passes", fn() -> AssertionResult { return assert_ends_with("hello", "llo") }),
+                make_test("assert_ends_with passes", fn() -> AssertionResult { return assert_ends_with("hello", "llo") }),
                 Cons(
-                    test("assert_not_contains passes", fn() -> AssertionResult { return assert_not_contains("hello", "xyz") }),
+                    make_test("assert_not_contains passes", fn() -> AssertionResult { return assert_not_contains("hello", "xyz") }),
                     Cons(
-                        test("assert_not_starts_with passes", fn() -> AssertionResult { return assert_not_starts_with("hello", "xyz") }),
+                        make_test("assert_not_starts_with passes", fn() -> AssertionResult { return assert_not_starts_with("hello", "xyz") }),
                         Cons(
-                            test("assert_not_ends_with passes", fn() -> AssertionResult { return assert_not_ends_with("hello", "xyz") }),
+                            make_test("assert_not_ends_with passes", fn() -> AssertionResult { return assert_not_ends_with("hello", "xyz") }),
                             Cons(
-                                test("assert_empty_string passes", fn() -> AssertionResult { return assert_empty_string("") }),
+                                make_test("assert_empty_string passes", fn() -> AssertionResult { return assert_empty_string("") }),
                                 Cons(
-                                    test("assert_not_empty_string passes", fn() -> AssertionResult { return assert_not_empty_string("hi") }),
+                                    make_test("assert_not_empty_string passes", fn() -> AssertionResult { return assert_not_empty_string("hi") }),
                                     Cons(
-                                        test("assert_str_length passes", fn() -> AssertionResult { return assert_str_length(5, "hello") }),
+                                        make_test("assert_str_length passes", fn() -> AssertionResult { return assert_str_length(5, "hello") }),
                                         Nil
                                     )
                                 )
@@ -277,21 +277,21 @@ let string_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let list_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_empty_i32 passes", fn() -> AssertionResult { return assert_empty_i32(Nil) }),
+        make_test("assert_empty_i32 passes", fn() -> AssertionResult { return assert_empty_i32(Nil) }),
         Cons(
-            test("assert_not_empty_i32 passes", fn() -> AssertionResult { return assert_not_empty_i32(Cons(1, Nil)) }),
+            make_test("assert_not_empty_i32 passes", fn() -> AssertionResult { return assert_not_empty_i32(Cons(1, Nil)) }),
             Cons(
-                test("assert_length_i32 passes", fn() -> AssertionResult { return assert_length_i32(3, Cons(1, Cons(2, Cons(3, Nil)))) }),
+                make_test("assert_length_i32 passes", fn() -> AssertionResult { return assert_length_i32(3, Cons(1, Cons(2, Cons(3, Nil)))) }),
                 Cons(
-                    test("assert_contains_i32 passes", fn() -> AssertionResult { return assert_contains_i32(Cons(1, Cons(2, Nil)), 2) }),
+                    make_test("assert_contains_i32 passes", fn() -> AssertionResult { return assert_contains_i32(Cons(1, Cons(2, Nil)), 2) }),
                     Cons(
-                        test("assert_not_contains_i32 passes", fn() -> AssertionResult { return assert_not_contains_i32(Cons(1, Cons(2, Nil)), 5) }),
+                        make_test("assert_not_contains_i32 passes", fn() -> AssertionResult { return assert_not_contains_i32(Cons(1, Cons(2, Nil)), 5) }),
                         Cons(
-                            test("assert_eq_list_i32 passes", fn() -> AssertionResult { return assert_eq_list_i32(Cons(1, Cons(2, Nil)), Cons(1, Cons(2, Nil))) }),
+                            make_test("assert_eq_list_i32 passes", fn() -> AssertionResult { return assert_eq_list_i32(Cons(1, Cons(2, Nil)), Cons(1, Cons(2, Nil))) }),
                             Cons(
-                                test("assert_empty_str_list passes", fn() -> AssertionResult { return assert_empty_str_list(Nil) }),
+                                make_test("assert_empty_str_list passes", fn() -> AssertionResult { return assert_empty_str_list(Nil) }),
                                 Cons(
-                                    test("assert_contains_str_list passes", fn() -> AssertionResult { return assert_contains_str_list(Cons("a", Cons("b", Nil)), "b") }),
+                                    make_test("assert_contains_str_list passes", fn() -> AssertionResult { return assert_contains_str_list(Cons("a", Cons("b", Nil)), "b") }),
                                     Nil
                                 )
                             )
@@ -309,17 +309,17 @@ let list_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 
 let predicate_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
     return Cons(
-        test("assert_all_i32 passes", fn() -> AssertionResult { return assert_all_i32(Cons(2, Cons(4, Cons(6, Nil))), is_even) }),
+        make_test("assert_all_i32 passes", fn() -> AssertionResult { return assert_all_i32(Cons(2, Cons(4, Cons(6, Nil))), is_even) }),
         Cons(
-            test("assert_any_i32 passes", fn() -> AssertionResult { return assert_any_i32(Cons(1, Cons(2, Cons(3, Nil))), is_even) }),
+            make_test("assert_any_i32 passes", fn() -> AssertionResult { return assert_any_i32(Cons(1, Cons(2, Cons(3, Nil))), is_even) }),
             Cons(
-                test("assert_all_str passes", fn() -> AssertionResult { return assert_all_str(Cons("a", Cons("bc", Nil)), is_non_empty) }),
+                make_test("assert_all_str passes", fn() -> AssertionResult { return assert_all_str(Cons("a", Cons("bc", Nil)), is_non_empty) }),
                 Cons(
-                    test("assert_one_of_i32 passes", fn() -> AssertionResult { return assert_one_of_i32(2, Cons(1, Cons(2, Cons(3, Nil)))) }),
+                    make_test("assert_one_of_i32 passes", fn() -> AssertionResult { return assert_one_of_i32(2, Cons(1, Cons(2, Cons(3, Nil)))) }),
                     Cons(
-                        test("assert_one_of_str passes", fn() -> AssertionResult { return assert_one_of_str("b", Cons("a", Cons("b", Cons("c", Nil)))) }),
+                        make_test("assert_one_of_str passes", fn() -> AssertionResult { return assert_one_of_str("b", Cons("a", Cons("b", Cons("c", Nil)))) }),
                         Cons(
-                            test("assert_satisfies_i32 passes", fn() -> AssertionResult { return assert_satisfies_i32(5, is_positive, "be positive") }),
+                            make_test("assert_satisfies_i32 passes", fn() -> AssertionResult { return assert_satisfies_i32(5, is_positive, "be positive") }),
                             Nil
                         )
                     )
@@ -364,7 +364,7 @@ let all_tests: fn() -> List[TestCase] = fn() -> List[TestCase] {
 // Main
 // =============================================================================
 
-effect fn main() -> IO[void] {
+effect fn main() -> void {
     std.io.println("=== kira-test Internal Test Suite ===")
     std.io.println("")
 

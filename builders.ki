@@ -4,14 +4,14 @@
 
 module kira_test.builders
 
-import kira_test.types.{AssertionResult, TestCase, TestSuite, RunConfig}
+import types.{AssertionResult, TestCase, TestSuite, RunConfig}
 
 // =============================================================================
 // Test Case Builders
 // =============================================================================
 
 /// Create a test case with a name and test function.
-pub fn test(name: string, test_fn: fn() -> AssertionResult) -> TestCase {
+pub fn make_test(name: string, test_fn: fn() -> AssertionResult) -> TestCase {
     return TestCase { name: name, tags: Nil, run: test_fn }
 }
 
