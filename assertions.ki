@@ -345,7 +345,7 @@ pub fn assert_ends_with(s: string, suffix: string) -> AssertionResult {
 pub fn assert_empty_i32(list: List[i32]) -> AssertionResult {
     match std.list.length(list) == 0 {
         true => { return Passed }
-        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i32(std.list.length(list)), " elements")) }
+        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i64(std.list.length(list)), " elements")) }
     }
 }
 
@@ -358,11 +358,11 @@ pub fn assert_not_empty_i32(list: List[i32]) -> AssertionResult {
 }
 
 /// Assert that a list has the expected length.
-pub fn assert_length_i32(expected_len: i32, list: List[i32]) -> AssertionResult {
-    let actual_len: i32 = std.list.length(list)
+pub fn assert_length_i32(expected_len: i64, list: List[i32]) -> AssertionResult {
+    let actual_len: i64 = std.list.length(list)
     match actual_len == expected_len {
         true => { return Passed }
-        false => { return Failed(str_concat4("Expected list length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
+        false => { return Failed(str_concat4("Expected list length ", std.string.from_i64(expected_len), ", got ", std.string.from_i64(actual_len))) }
     }
 }
 
@@ -656,11 +656,11 @@ pub fn assert_not_empty_string(s: string) -> AssertionResult {
 }
 
 /// Assert that a string has the expected length.
-pub fn assert_str_length(expected_len: i32, s: string) -> AssertionResult {
-    let actual_len: i32 = std.string.length(s)
+pub fn assert_str_length(expected_len: i64, s: string) -> AssertionResult {
+    let actual_len: i64 = std.string.length(s)
     match actual_len == expected_len {
         true => { return Passed }
-        false => { return Failed(str_concat4("Expected string length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
+        false => { return Failed(str_concat4("Expected string length ", std.string.from_i64(expected_len), ", got ", std.string.from_i64(actual_len))) }
     }
 }
 
@@ -876,7 +876,7 @@ pub fn assert_some_approx_eq_f64(expected: f64, opt: Option[f64], epsilon: f64) 
 pub fn assert_empty_str_list(list: List[string]) -> AssertionResult {
     match std.list.length(list) == 0 {
         true => { return Passed }
-        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i32(std.list.length(list)), " elements")) }
+        false => { return Failed(str_concat3("Expected empty list, got list with ", std.string.from_i64(std.list.length(list)), " elements")) }
     }
 }
 
@@ -889,10 +889,10 @@ pub fn assert_not_empty_str_list(list: List[string]) -> AssertionResult {
 }
 
 /// Assert that a string list has the expected length.
-pub fn assert_length_str_list(expected_len: i32, list: List[string]) -> AssertionResult {
-    let actual_len: i32 = std.list.length(list)
+pub fn assert_length_str_list(expected_len: i64, list: List[string]) -> AssertionResult {
+    let actual_len: i64 = std.list.length(list)
     match actual_len == expected_len {
         true => { return Passed }
-        false => { return Failed(str_concat4("Expected list length ", std.string.from_i32(expected_len), ", got ", std.string.from_i32(actual_len))) }
+        false => { return Failed(str_concat4("Expected list length ", std.string.from_i64(expected_len), ", got ", std.string.from_i64(actual_len))) }
     }
 }

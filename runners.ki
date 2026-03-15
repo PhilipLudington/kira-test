@@ -47,7 +47,7 @@ pub fn run_test_with_hooks(tc: TestCase, before: Option[fn() -> void], after: Op
 // Helper Functions
 // =============================================================================
 
-fn count_passed(acc: i32, r: TestResult) -> i32 {
+fn count_passed(acc: i64, r: TestResult) -> i64 {
     match r.passed {
         true => { return acc + 1 }
         false => { return acc }
@@ -81,9 +81,9 @@ pub fn run_suite(s: TestSuite) -> TestSummary {
         None => {}
     }
 
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed)
-    let failed: i32 = total - passed
+    let total: i64 = std.list.length(results)
+    let passed: i64 = std.list.fold(results, 0i64, count_passed)
+    let failed: i64 = total - passed
     let failures: List[TestResult] = std.list.filter(results, is_failed)
 
     return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
@@ -148,9 +148,9 @@ pub fn run_suite_with_config(s: TestSuite, config: RunConfig) -> TestSummary {
         None => {}
     }
 
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed)
-    let failed: i32 = total - passed
+    let total: i64 = std.list.length(results)
+    let passed: i64 = std.list.fold(results, 0i64, count_passed)
+    let failed: i64 = total - passed
     let failures: List[TestResult] = std.list.filter(results, is_failed)
 
     return TestSummary { suite_name: s.name, total: total, passed: passed, failed: failed, failures: failures }
@@ -210,7 +210,7 @@ pub fn run_all_suites_with_config(suites: List[TestSuite], config: RunConfig) ->
 // =============================================================================
 
 /// Helper for timed results
-fn count_passed_timed(acc: i32, r: TimedTestResult) -> i32 {
+fn count_passed_timed(acc: i64, r: TimedTestResult) -> i64 {
     match r.passed {
         true => { return acc + 1 }
         false => { return acc }
@@ -302,9 +302,9 @@ pub effect fn run_suite_timed(s: TestSuite) -> TimedTestSummary {
         None => {}
     }
 
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed_timed)
-    let failed: i32 = total - passed
+    let total: i64 = std.list.length(results)
+    let passed: i64 = std.list.fold(results, 0i64, count_passed_timed)
+    let failed: i64 = total - passed
     let failures: List[TimedTestResult] = std.list.filter(results, is_failed_timed)
     let total_duration: i64 = std.list.fold(results, 0, sum_duration)
 
@@ -358,9 +358,9 @@ pub effect fn run_suite_parallel(s: TestSuite) -> TestSummary {
         None => {}
     }
 
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed)
-    let failed: i32 = total - passed
+    let total: i64 = std.list.length(results)
+    let passed: i64 = std.list.fold(results, 0i64, count_passed)
+    let failed: i64 = total - passed
     let failures: List[TestResult] = std.list.filter(results, is_failed)
 
     return TestSummary { suite_name: suite_name, total: total, passed: passed, failed: failed, failures: failures }
@@ -405,9 +405,9 @@ pub effect fn run_suite_parallel_timed(s: TestSuite) -> TimedTestSummary {
         None => {}
     }
 
-    let total: i32 = std.list.length(results)
-    let passed: i32 = std.list.fold(results, 0, count_passed_timed)
-    let failed: i32 = total - passed
+    let total: i64 = std.list.length(results)
+    let passed: i64 = std.list.fold(results, 0i64, count_passed_timed)
+    let failed: i64 = total - passed
     let failures: List[TimedTestResult] = std.list.filter(results, is_failed_timed)
     let total_duration: i64 = std.time.now() - start
 

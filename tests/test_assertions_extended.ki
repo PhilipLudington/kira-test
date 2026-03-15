@@ -115,39 +115,39 @@ let test_less_or_eq_f64_passes: fn() -> AssertionResult = fn() -> AssertionResul
 // =============================================================================
 
 let test_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_eq_i64(9223372036854775807, 9223372036854775807)
+    return assert_eq_i64(9223372036854775807i64, 9223372036854775807i64)
 }
 
 let test_not_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_not_eq_i64(100, 200)
+    return assert_not_eq_i64(100i64, 200i64)
 }
 
 let test_greater_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_greater_i64(100, 200)
+    return assert_greater_i64(100i64, 200i64)
 }
 
 let test_less_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_less_i64(200, 100)
+    return assert_less_i64(200i64, 100i64)
 }
 
 let test_greater_or_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_greater_or_eq_i64(50, 100)
+    return assert_greater_or_eq_i64(50i64, 100i64)
 }
 
 let test_greater_or_eq_i64_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_greater_or_eq_i64(50, 50)
+    return assert_greater_or_eq_i64(50i64, 50i64)
 }
 
 let test_less_or_eq_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_less_or_eq_i64(100, 50)
+    return assert_less_or_eq_i64(100i64, 50i64)
 }
 
 let test_less_or_eq_i64_passes_equal: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_less_or_eq_i64(50, 50)
+    return assert_less_or_eq_i64(50i64, 50i64)
 }
 
 let test_in_range_i64_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_in_range_i64(0, 100, 50)
+    return assert_in_range_i64(0i64, 100i64, 50i64)
 }
 
 // =============================================================================
@@ -262,7 +262,7 @@ let test_not_empty_string_passes: fn() -> AssertionResult = fn() -> AssertionRes
 }
 
 let test_str_length_passes: fn() -> AssertionResult = fn() -> AssertionResult {
-    return assert_str_length(5, "hello")
+    return assert_str_length(5i64, "hello")
 }
 
 // =============================================================================
@@ -426,7 +426,7 @@ let test_not_empty_str_list_passes: fn() -> AssertionResult = fn() -> AssertionR
 
 let test_length_str_list_passes: fn() -> AssertionResult = fn() -> AssertionResult {
     let list: List[string] = Cons("a", Cons("b", Cons("c", Nil)))
-    return assert_length_str_list(3, list)
+    return assert_length_str_list(3i64, list)
 }
 
 // =============================================================================

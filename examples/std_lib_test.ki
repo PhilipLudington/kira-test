@@ -11,7 +11,7 @@ effect fn main() -> void {
     print("Testing std.list.parallel_map()...")
     let nums: List[i32] = std.list.cons(1, std.list.cons(2, std.list.singleton(3)))
     let doubled: List[i32] = std.list.parallel_map(nums, fn(x: i32) -> i32 { return x * 2 })
-    print(std.string.concat("Length: ", std.string.from_i32(std.list.length(doubled))))
+    print(std.string.concat("Length: ", std.string.from_i64(std.list.length(doubled))))
 
     print("Done!")
     return

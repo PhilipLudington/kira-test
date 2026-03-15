@@ -74,18 +74,18 @@ pub type RunConfig = {
 /// Summary of running a test suite.
 pub type TestSummary = {
     suite_name: string,
-    total: i32,
-    passed: i32,
-    failed: i32,
+    total: i64,
+    passed: i64,
+    failed: i64,
     failures: List[TestResult]
 }
 
 /// Summary of running a test suite with timing information.
 pub type TimedTestSummary = {
     suite_name: string,
-    total: i32,
-    passed: i32,
-    failed: i32,
+    total: i64,
+    passed: i64,
+    failed: i64,
     failures: List[TimedTestResult],
     total_duration_ms: i64
 }

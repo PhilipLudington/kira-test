@@ -28,11 +28,11 @@ fn str_concat6(a: string, b: string, c: string, d: string, e: string, f: string)
     return std.string.concat(str_concat5(a, b, c, d, e), f)
 }
 
-fn count_failures(acc: i32, s: TestSummary) -> i32 {
+fn count_failures(acc: i64, s: TestSummary) -> i64 {
     return acc + s.failed
 }
 
-fn count_failures_timed(acc: i32, s: TimedTestSummary) -> i32 {
+fn count_failures_timed(acc: i64, s: TimedTestSummary) -> i64 {
     return acc + s.failed
 }
 
@@ -58,9 +58,9 @@ pub effect fn print_summary(summary: TestSummary) -> void {
     print("")
 
     match summary.failed == 0 {
-        true => { print(str_concat3("All ", std.string.from_i32(summary.total), " tests passed!")) }
+        true => { print(str_concat3("All ", std.string.from_i64(summary.total), " tests passed!")) }
         false => {
-            print(str_concat4(std.string.from_i32(summary.passed), "/", std.string.from_i32(summary.total), " tests passed"))
+            print(str_concat4(std.string.from_i64(summary.passed), "/", std.string.from_i64(summary.total), " tests passed"))
             print("")
             print("Failures:")
             std.list.foreach(summary.failures, print_failure)
@@ -87,9 +87,9 @@ pub effect fn print_summary_timed(summary: TimedTestSummary) -> void {
     print("")
 
     match summary.failed == 0 {
-        true => { print(str_concat3("All ", std.string.from_i32(summary.total), " tests passed!")) }
+        true => { print(str_concat3("All ", std.string.from_i64(summary.total), " tests passed!")) }
         false => {
-            print(str_concat4(std.string.from_i32(summary.passed), "/", std.string.from_i32(summary.total), " tests passed"))
+            print(str_concat4(std.string.from_i64(summary.passed), "/", std.string.from_i64(summary.total), " tests passed"))
             print("")
             print("Failures:")
             std.list.foreach(summary.failures, print_failure_timed)
@@ -106,7 +106,7 @@ pub effect fn print_summary_timed(summary: TimedTestSummary) -> void {
 pub effect fn run_and_report(suites: List[TestSuite]) -> bool {
     let summaries: List[TestSummary] = run_all_suites(suites)
     std.list.foreach(summaries, print_summary)
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
+    let total_failed: i64 = std.list.fold(summaries, 0i64, count_failures)
     return total_failed == 0
 }
 
@@ -114,7 +114,7 @@ pub effect fn run_and_report(suites: List[TestSuite]) -> bool {
 pub effect fn run_and_report_with_config(suites: List[TestSuite], config: RunConfig) -> bool {
     let summaries: List[TestSummary] = run_all_suites_with_config(suites, config)
     std.list.foreach(summaries, print_summary)
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
+    let total_failed: i64 = std.list.fold(summaries, 0i64, count_failures)
     return total_failed == 0
 }
 
@@ -127,7 +127,7 @@ pub effect fn run_and_report_timed(suites: List[TestSuite]) -> bool {
     let summaries: List[TimedTestSummary] = run_all_suites_timed(suites)
     std.list.foreach(summaries, print_summary_timed)
 
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures_timed)
+    let total_failed: i64 = std.list.fold(summaries, 0i64, count_failures_timed)
     let total_time: i64 = std.list.fold(summaries, 0, sum_duration_summaries)
 
     print("")
@@ -144,7 +144,7 @@ pub effect fn run_and_report_timed(suites: List[TestSuite]) -> bool {
 pub effect fn run_and_report_parallel(suites: List[TestSuite]) -> bool {
     let summaries: List[TestSummary] = run_all_suites_parallel(suites)
     std.list.foreach(summaries, print_summary)
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures)
+    let total_failed: i64 = std.list.fold(summaries, 0i64, count_failures)
     return total_failed == 0
 }
 
@@ -166,7 +166,7 @@ pub effect fn run_and_report_parallel_timed(suites: List[TestSuite]) -> bool {
 
     std.list.foreach(summaries, print_summary_timed)
 
-    let total_failed: i32 = std.list.fold(summaries, 0, count_failures_timed)
+    let total_failed: i64 = std.list.fold(summaries, 0i64, count_failures_timed)
     let wall_time: i64 = std.time.now() - start
 
     print("")
